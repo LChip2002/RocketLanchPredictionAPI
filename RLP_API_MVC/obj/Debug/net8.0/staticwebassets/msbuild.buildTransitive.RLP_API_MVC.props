@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="../buildMultiTargeting/RLP_API_MVC.props" />
+</Project>
