@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RLP_API_MVC", "RLP_API_MVC\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RLP_Tests", "RLP_Tests\RLP_Tests.csproj", "{E8BA84A2-0A0F-40C7-BCD5-5EAEF31A51A0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RLP_DB", "RLP_DB\RLP_DB.csproj", "{B8211AF5-CCEC-4634-93D3-7ADD03F9762C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -38,5 +40,9 @@ Global
 		{E8BA84A2-0A0F-40C7-BCD5-5EAEF31A51A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E8BA84A2-0A0F-40C7-BCD5-5EAEF31A51A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E8BA84A2-0A0F-40C7-BCD5-5EAEF31A51A0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B8211AF5-CCEC-4634-93D3-7ADD03F9762C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B8211AF5-CCEC-4634-93D3-7ADD03F9762C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B8211AF5-CCEC-4634-93D3-7ADD03F9762C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B8211AF5-CCEC-4634-93D3-7ADD03F9762C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

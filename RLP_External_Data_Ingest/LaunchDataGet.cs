@@ -1,6 +1,7 @@
 using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Newtonsoft.Json;
 
 namespace RLP_External_Data_Ingest;
 
@@ -32,10 +33,9 @@ public class LaunchDataGet
         {
             Console.WriteLine("Success");
 
-            // Reads the JSON content of the API response
+            // Reads the JSON content of the API response and converts to launch object
             var res = await response.Content.ReadAsStringAsync();
-            var resObj = JsonSerializer.Deserialize<JsonObject>(res);
-
+            var launch = JsonConvert.DeserializeObject<LaunchObject>(res);
 
             return;
         }
