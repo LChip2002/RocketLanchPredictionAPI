@@ -69,27 +69,27 @@ namespace RLP_External_Data_Ingest
                     // Use indexes to get weather data for launch window and calculate average
                     AverageWeatherMetrics avgWeatherData = new AverageWeatherMetrics()
                     {
-                        Temperature = 0,
-                        Rain = 0,
-                        Showers = 0,
-                        Snowfall = 0,
-                        CloudCover = 0,
-                        CloudCoverLow = 0,
-                        CloudCoverMid = 0,
-                        CloudCoverHigh = 0,
-                        Visibility = 0,
-                        WindSpeed10m = 0,
-                        WindSpeed80m = 0,
-                        WindSpeed120m = 0,
-                        WindSpeed180m = 0,
-                        Temperature80m = 0,
-                        Temperature120m = 0,
-                        Temperature180m = 0
+                        Temperature = timeIndexes.Select(i => hourlyWeather.Temperature2m[i]).Average(),
+                        Rain = timeIndexes.Select(i => hourlyWeather.Rain[i]).Average(),
+                        Showers = timeIndexes.Select(i => hourlyWeather.Showers[i]).Average(),
+                        Snowfall = timeIndexes.Select(i => hourlyWeather.Snowfall[i]).Average(),
+                        CloudCover = timeIndexes.Select(i => hourlyWeather.CloudCover[i]).Average(),
+                        CloudCoverLow = timeIndexes.Select(i => hourlyWeather.CloudCoverLow[i]).Average(),
+                        CloudCoverMid = timeIndexes.Select(i => hourlyWeather.CloudCoverMid[i]).Average(),
+                        CloudCoverHigh = timeIndexes.Select(i => hourlyWeather.CloudCoverHigh[i]).Average(),
+                        Visibility = timeIndexes.Select(i => hourlyWeather.Visibility[i]).Average(),
+                        WindSpeed10m = timeIndexes.Select(i => hourlyWeather.WindSpeed10m[i]).Average(),
+                        WindSpeed80m = timeIndexes.Select(i => hourlyWeather.WindSpeed80m[i]).Average(),
+                        WindSpeed120m = timeIndexes.Select(i => hourlyWeather.WindSpeed120m[i]).Average(),
+                        WindSpeed180m = timeIndexes.Select(i => hourlyWeather.WindSpeed180m[i]).Average(),
+                        Temperature80m = timeIndexes.Select(i => hourlyWeather.Temperature80m[i]).Average(),
+                        Temperature120m = timeIndexes.Select(i => hourlyWeather.Temperature120m[i]).Average(),
+                        Temperature180m = timeIndexes.Select(i => hourlyWeather.Temperature180m[i]).Average()
                     };
-
 
                     // Return the weather object
                     return avgWeatherData;
+
                 }
                 else
                 {
