@@ -2,6 +2,8 @@ using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Newtonsoft.Json;
+using RLP_DB.Models;
+using RLP_DB; // Add this line if PostgresV1Context is defined in this namespace
 
 namespace RLP_External_Data_Ingest;
 
@@ -108,11 +110,22 @@ public class LaunchDataGet
 
                 };
 
-                Console.WriteLine(JsonConvert.SerializeObject(launchEntry));
-
                 // Injest the data into the database
+                // Adds the launch entry to the db
+                using (var context = new PostgresV1Context())
+                {
+                    try
+                    {
+                        context.Set<LaunchEntry>().Add(launchEntry);
+                        await context.SaveChangesAsync();
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e);
+                    }
+                }
 
-                // TODO - Set up EF and DB first
+
             }
 
             return;

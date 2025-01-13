@@ -1,3 +1,5 @@
+namespace RLP_DB.Models;
+
 public class LaunchEntry
 {
     public string Id { get; set; }
