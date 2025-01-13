@@ -1,4 +1,6 @@
 
+using System.Text.Json.Serialization;
+
 namespace RLP_External_Data_Ingest;
 
 public class Launch
@@ -12,7 +14,11 @@ public class Launch
     public Status Status { get; set; }
     public string LastUpdated { get; set; }
     public string Net { get; set; }
+
+    [JsonPropertyName("window_end")]
     public string WindowEnd { get; set; }
+
+    [JsonPropertyName("window_start")]
     public string WindowStart { get; set; }
     public Image Image { get; set; }
     public Mission Mission { get; set; }
