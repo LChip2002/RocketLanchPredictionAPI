@@ -23,4 +23,5 @@ public class Launch
     public Image Image { get; set; }
     public Mission Mission { get; set; }
     public Pad Pad { get; set; }
+    public Rocket Rocket { get; set; }
 }

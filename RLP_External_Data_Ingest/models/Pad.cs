@@ -10,4 +10,5 @@ public class Pad
     public string WikiUrl { get; set; }
     public double Latitude { get; set; }
     public double Longitude { get; set; }
+    public Location Location { get; set; }
 }

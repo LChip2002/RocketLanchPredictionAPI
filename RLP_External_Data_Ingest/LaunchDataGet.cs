@@ -68,13 +68,47 @@ public class LaunchDataGet
             // Loop through each launch in the launch object
             foreach (var item in launch.Results)
             {
-
                 // Get relevant data from the launch object
 
                 // Query weather api with launch data date and location
-                var weather = weatherQuery.GetWeather(item.WindowStart, item.WindowEnd, item.Pad.Latitude, item.Pad.Longitude);
+                AverageWeatherMetrics? weather = weatherQuery.GetWeather(item.WindowStart, item.WindowEnd, item.Pad.Latitude, item.Pad.Longitude);
 
                 // Combine weather and launch data into new object
+                LaunchEntry launchEntry = new LaunchEntry
+                {
+                    Id = item.Id,
+                    Name = item.Name,
+                    Description = item.Mission?.Description,
+                    Country = item.Pad.Location.Name,
+                    LaunchLatitude = item.Pad.Latitude,
+                    LaunchLongitude = item.Pad.Longitude,
+                    LaunchStart = item.WindowStart,
+                    LaunchEnd = item.WindowEnd,
+                    Status = item.Status.Name,
+                    StatusDescription = item.Status.Description,
+                    Rocket = item.Rocket.Configuration.Name,
+                    Mission = item.Mission.Name,
+                    Image = JsonConvert.SerializeObject(item.Image),
+                    Temperature = weather.Temperature,
+                    Rain = weather.Rain,
+                    Showers = weather.Showers,
+                    Snowfall = weather.Snowfall,
+                    CloudCover = weather.CloudCover,
+                    CloudCoverLow = weather.CloudCoverLow,
+                    CloudCoverMid = weather.CloudCoverMid,
+                    CloudCoverHigh = weather.CloudCoverHigh,
+                    Visibility = weather.Visibility,
+                    WindSpeed10m = weather.WindSpeed10m,
+                    WindSpeed80m = weather.WindSpeed80m,
+                    WindSpeed120m = weather.WindSpeed120m,
+                    WindSpeed180m = weather.WindSpeed180m,
+                    Temperature80m = weather.Temperature80m,
+                    Temperature120m = weather.Temperature120m,
+                    Temperature180m = weather.Temperature180m
+
+                };
+
+                Console.WriteLine(JsonConvert.SerializeObject(launchEntry));
 
                 // Injest the data into the database
 
