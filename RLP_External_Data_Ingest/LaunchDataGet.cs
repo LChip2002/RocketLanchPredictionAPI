@@ -12,6 +12,8 @@ public class LaunchDataGet
     private readonly HttpClient client;
     private readonly WeatherQuery weatherQuery;
 
+    public bool isBusy = false;
+
     // Constructor for the class where we initialise API connections
     public LaunchDataGet()
     {
@@ -32,6 +34,15 @@ public class LaunchDataGet
     // See https://ll.thespacedevs.com/docs/#/launches/launches_previous_list for reference
     public async Task LaunchAPIRetrieval()
     {
+        // Checks if the worker is still in use
+        if (isBusy)
+        {
+            Console.WriteLine("API retrieval is busy");
+            return;
+        }
+
+        isBusy = true;
+
         // TODO - Actual API connection
         //HttpResponseMessage response = await client.GetAsync("/2.3.0/launches/previous/?limit=10&offset=10");
 
@@ -66,68 +77,90 @@ public class LaunchDataGet
             };
 
             LaunchObject? launch = System.Text.Json.JsonSerializer.Deserialize<LaunchObject>(res, options);
-
-            // Loop through each launch in the launch object
-            foreach (var item in launch.Results)
+            using (var context = new PostgresV1Context())
             {
-                // Get relevant data from the launch object
+                context.Database.EnsureCreated();
+                var launchEntries = new List<LaunchEntry>();
 
-                // Query weather api with launch data date and location
-                AverageWeatherMetrics? weather = weatherQuery.GetWeather(item.WindowStart, item.WindowEnd, item.Pad.Latitude, item.Pad.Longitude);
-
-                // Combine weather and launch data into new object
-                LaunchEntry launchEntry = new LaunchEntry
+                // Loop through each launch in the launch object
+                for (int i = 0; i < launch.Results.Count; i++)
+                //{
+                //
+                //foreach (var item in launch.Results)
                 {
-                    Id = item.Id,
-                    Name = item.Name,
-                    Description = item.Mission?.Description,
-                    Country = item.Pad.Location.Name,
-                    LaunchLatitude = item.Pad.Latitude,
-                    LaunchLongitude = item.Pad.Longitude,
-                    LaunchStart = item.WindowStart,
-                    LaunchEnd = item.WindowEnd,
-                    Status = item.Status.Name,
-                    StatusDescription = item.Status.Description,
-                    Rocket = item.Rocket.Configuration.Name,
-                    Mission = item.Mission.Name,
-                    Image = JsonConvert.SerializeObject(item.Image),
-                    Temperature = weather.Temperature,
-                    Rain = weather.Rain,
-                    Showers = weather.Showers,
-                    Snowfall = weather.Snowfall,
-                    CloudCover = weather.CloudCover,
-                    CloudCoverLow = weather.CloudCoverLow,
-                    CloudCoverMid = weather.CloudCoverMid,
-                    CloudCoverHigh = weather.CloudCoverHigh,
-                    Visibility = weather.Visibility,
-                    WindSpeed10m = weather.WindSpeed10m,
-                    WindSpeed80m = weather.WindSpeed80m,
-                    WindSpeed120m = weather.WindSpeed120m,
-                    WindSpeed180m = weather.WindSpeed180m,
-                    Temperature80m = weather.Temperature80m,
-                    Temperature120m = weather.Temperature120m,
-                    Temperature180m = weather.Temperature180m
 
-                };
+                    // Get relevant data from the launch object
+                    var item = launch.Results[i];
 
-                // Injest the data into the database
-                // Adds the launch entry to the db
-                using (var context = new PostgresV1Context())
-                {
+                    // Query weather api with launch data date and location
+                    AverageWeatherMetrics? weather = weatherQuery.GetWeather(item.WindowStart, item.WindowEnd, item.Pad.Latitude, item.Pad.Longitude);
+
                     try
                     {
-                        context.Set<LaunchEntry>().Add(launchEntry);
-                        await context.SaveChangesAsync();
+                        // Combine weather and launch data into new object
+                        LaunchEntry launchEntry = new LaunchEntry()
+                        {
+                            Id = item.Id,
+                            Name = item.Name,
+                            Description = item.Mission?.Description,
+                            Country = item.Pad.Location.Name,
+                            LaunchLatitude = item.Pad.Latitude,
+                            LaunchLongitude = item.Pad.Longitude,
+                            LaunchStart = item.WindowStart,
+                            LaunchEnd = item.WindowEnd,
+                            Status = item.Status.Name,
+                            StatusDescription = item.Status.Description,
+                            Rocket = item.Rocket.Configuration.Name,
+                            Mission = item.Mission.Name,
+                            Image = JsonConvert.SerializeObject(item.Image),
+                            Temperature = weather.Temperature,
+                            Rain = weather.Rain,
+                            Showers = weather.Showers,
+                            Snowfall = weather.Snowfall,
+                            CloudCover = weather.CloudCover,
+                            CloudCoverLow = weather.CloudCoverLow,
+                            CloudCoverMid = weather.CloudCoverMid,
+                            CloudCoverHigh = weather.CloudCoverHigh,
+                            Visibility = weather.Visibility,
+                            WindSpeed10m = weather.WindSpeed10m,
+                            WindSpeed80m = weather.WindSpeed80m,
+                            WindSpeed120m = weather.WindSpeed120m,
+                            WindSpeed180m = weather.WindSpeed180m,
+                            Temperature80m = weather.Temperature80m,
+                            Temperature120m = weather.Temperature120m,
+                            Temperature180m = weather.Temperature180m
+                        };
+
+                        launchEntries.Add(launchEntry);
+                        Console.WriteLine(launchEntries.Count);
+
+                        // Check if the launch entry already exists in the database
+                        // Attempts to ingest launch entry to the database
+                        var existingEntry = await context.Set<LaunchEntry>().FindAsync(launchEntry.Id);
+                        if (existingEntry == null)
+                        {
+                            Console.WriteLine("Adding new launch entry to database");
+                            // Attempts to add the launch entry to the database
+                            context.Set<LaunchEntry>().Add(launchEntry);
+                            await context.SaveChangesAsync();
+                        }
+                        else
+                        {
+                            Console.WriteLine("Launch entry already exists in database");
+                        }
                     }
                     catch (Exception e)
                     {
                         Console.WriteLine(e);
                     }
+
                 }
+
 
 
             }
 
+            isBusy = false;
             return;
         }
 

@@ -4,6 +4,7 @@ public class Worker : BackgroundService
 {
     // Using ILogger for Console Logging and Debugging
     private readonly ILogger<Worker> _logger;
+    private bool _isInUse = false;
 
     public Worker(ILogger<Worker> logger)
     {
@@ -17,17 +18,21 @@ public class Worker : BackgroundService
         // Use Ctrl + C to stop the Data Ingest
         while (!stoppingToken.IsCancellationRequested)
         {
-            if (_logger.IsEnabled(LogLevel.Information))
+            if (_logger.IsEnabled(LogLevel.Information) && !_isInUse)
             {
                 // TODO - Checks if the worker is still in use
+                _isInUse = true;
 
                 // TODO - Checks if the data has been updated recently based on appsettings
+
+                // Calls the LaunchDataGet class to get the launch data and ingest to DB
                 LaunchDataGet dataGet = new();
                 dataGet.LaunchAPIRetrieval();
 
-
             }
-            await Task.Delay(1000, stoppingToken);
+
+            _isInUse = false;
+            await Task.Delay(10000, stoppingToken);
         }
     }
 }

@@ -39,61 +39,69 @@ namespace RLP_External_Data_Ingest
 
                 if (response.IsSuccessStatusCode || testString != null)
                 {
-                    string responseBody = response.Content.ReadAsStringAsync().Result;
-                    Console.WriteLine(responseBody);
-
-                    // Set up options for deserialising JSON that avoids case sensitivity
-                    JsonSerializerOptions? options = new JsonSerializerOptions
+                    try
                     {
-                        PropertyNameCaseInsensitive = true
-                    };
+                        string responseBody = response.Content.ReadAsStringAsync().Result;
+                        Console.WriteLine(responseBody);
 
-                    // Deserialise JSON response into weather object
-                    WeatherResponse weather = System.Text.Json.JsonSerializer.Deserialize<WeatherResponse>(testString, options);
-                    Console.WriteLine("test");
-
-                    // Filter Results by time to get exact time for weather
-                    var hourlyWeather = weather.Hourly;
-
-                    // Get time indexes are between start and end launch window
-                    List<int> timeIndexes = new List<int>();
-                    for (int i = 0; i < hourlyWeather.Time.Count; i++)
-                    {
-                        DateTime time = DateTime.Parse(hourlyWeather.Time[i]);
-                        if (time >= DateTime.Parse(windowStart) && time <= DateTime.Parse(windowEnd))
+                        // Set up options for deserialising JSON that avoids case sensitivity
+                        JsonSerializerOptions? options = new JsonSerializerOptions
                         {
-                            timeIndexes.Add(i);
+                            PropertyNameCaseInsensitive = true
+                        };
+
+                        // Deserialise JSON response into weather object
+                        WeatherResponse weather = System.Text.Json.JsonSerializer.Deserialize<WeatherResponse>(testString, options);
+
+                        // Filter Results by time to get exact time for weather
+                        var hourlyWeather = weather.Hourly;
+
+                        // Get time indexes are between start and end launch window
+                        List<int> timeIndexes = new List<int>();
+                        for (int i = 0; i < hourlyWeather.Time.Count; i++)
+                        {
+                            DateTime time = DateTime.Parse(hourlyWeather.Time[i]);
+                            if (time >= DateTime.Parse(windowStart) && time <= DateTime.Parse(windowEnd))
+                            {
+                                timeIndexes.Add(i);
+                            }
                         }
+
+                        // Use indexes to get weather data for launch window and calculate average
+                        // Assigns default value of 0 if no data is found between date thresholds
+                        var avgWeatherData = new AverageWeatherMetrics
+                        {
+                            Temperature = timeIndexes.Select(i => hourlyWeather.Temperature2m[i]).DefaultIfEmpty(0).Average(),
+                            Rain = timeIndexes.Select(i => hourlyWeather.Rain[i]).DefaultIfEmpty(0).Average(),
+                            Showers = timeIndexes.Select(i => hourlyWeather.Showers[i]).DefaultIfEmpty(0).Average(),
+                            Snowfall = timeIndexes.Select(i => hourlyWeather.Snowfall[i]).DefaultIfEmpty(0).Average(),
+                            CloudCover = timeIndexes.Select(i => hourlyWeather.CloudCover[i]).DefaultIfEmpty(0).Average(),
+                            CloudCoverLow = timeIndexes.Select(i => hourlyWeather.CloudCoverLow[i]).DefaultIfEmpty(0).Average(),
+                            CloudCoverMid = timeIndexes.Select(i => hourlyWeather.CloudCoverMid[i]).DefaultIfEmpty(0).Average(),
+                            CloudCoverHigh = timeIndexes.Select(i => hourlyWeather.CloudCoverHigh[i]).DefaultIfEmpty(0).Average(),
+                            Visibility = timeIndexes.Select(i => hourlyWeather.Visibility[i]).DefaultIfEmpty(0).Average(),
+                            WindSpeed10m = timeIndexes.Select(i => hourlyWeather.WindSpeed10m[i]).DefaultIfEmpty(0).Average(),
+                            WindSpeed80m = timeIndexes.Select(i => hourlyWeather.WindSpeed80m[i]).DefaultIfEmpty(0).Average(),
+                            WindSpeed120m = timeIndexes.Select(i => hourlyWeather.WindSpeed120m[i]).DefaultIfEmpty(0).Average(),
+                            WindSpeed180m = timeIndexes.Select(i => hourlyWeather.WindSpeed180m[i]).DefaultIfEmpty(0).Average(),
+                            Temperature80m = timeIndexes.Select(i => hourlyWeather.Temperature80m[i]).DefaultIfEmpty(0).Average(),
+                            Temperature120m = timeIndexes.Select(i => hourlyWeather.Temperature120m[i]).DefaultIfEmpty(0).Average(),
+                            Temperature180m = timeIndexes.Select(i => hourlyWeather.Temperature180m[i]).DefaultIfEmpty(0).Average()
+                        };
+
+                        // Return the weather object
+                        return avgWeatherData;
                     }
-
-                    // Use indexes to get weather data for launch window and calculate average
-                    AverageWeatherMetrics avgWeatherData = new AverageWeatherMetrics()
+                    catch (Exception e)
                     {
-                        Temperature = timeIndexes.Select(i => hourlyWeather.Temperature2m[i]).Average(),
-                        Rain = timeIndexes.Select(i => hourlyWeather.Rain[i]).Average(),
-                        Showers = timeIndexes.Select(i => hourlyWeather.Showers[i]).Average(),
-                        Snowfall = timeIndexes.Select(i => hourlyWeather.Snowfall[i]).Average(),
-                        CloudCover = timeIndexes.Select(i => hourlyWeather.CloudCover[i]).Average(),
-                        CloudCoverLow = timeIndexes.Select(i => hourlyWeather.CloudCoverLow[i]).Average(),
-                        CloudCoverMid = timeIndexes.Select(i => hourlyWeather.CloudCoverMid[i]).Average(),
-                        CloudCoverHigh = timeIndexes.Select(i => hourlyWeather.CloudCoverHigh[i]).Average(),
-                        Visibility = timeIndexes.Select(i => hourlyWeather.Visibility[i]).Average(),
-                        WindSpeed10m = timeIndexes.Select(i => hourlyWeather.WindSpeed10m[i]).Average(),
-                        WindSpeed80m = timeIndexes.Select(i => hourlyWeather.WindSpeed80m[i]).Average(),
-                        WindSpeed120m = timeIndexes.Select(i => hourlyWeather.WindSpeed120m[i]).Average(),
-                        WindSpeed180m = timeIndexes.Select(i => hourlyWeather.WindSpeed180m[i]).Average(),
-                        Temperature80m = timeIndexes.Select(i => hourlyWeather.Temperature80m[i]).Average(),
-                        Temperature120m = timeIndexes.Select(i => hourlyWeather.Temperature120m[i]).Average(),
-                        Temperature180m = timeIndexes.Select(i => hourlyWeather.Temperature180m[i]).Average()
-                    };
-
-                    // Return the weather object
-                    return avgWeatherData;
+                        Console.WriteLine("Error: " + e.Message);
+                    }
 
                 }
                 else
                 {
                     // Handle error response
+                    Console.WriteLine("Error: " + response.StatusCode);
                 }
             }
 

@@ -6,6 +6,9 @@
     <UserSecretsId>dotnet-RLP_External_Data_Ingest-6d6c81e1-7912-43f1-af22-2ec07878c8c6</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
+        <ProjectReference Include="../RLP_DB/RLP_DB.csproj" />
+    </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
