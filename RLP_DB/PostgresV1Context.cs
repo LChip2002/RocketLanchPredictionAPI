@@ -17,6 +17,7 @@ public class PostgresV1Context : Microsoft.EntityFrameworkCore.DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<LaunchEntry>()
+            .ToTable("launch_entries") // Ensure table name is correct
             .HasKey(e => e.Id); // Ensure Id is the primary key
     }
 
