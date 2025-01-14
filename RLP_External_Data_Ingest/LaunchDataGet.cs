@@ -44,13 +44,13 @@ public class LaunchDataGet
         isBusy = true;
 
         // TODO - Actual API connection
-        //HttpResponseMessage response = await client.GetAsync("/2.3.0/launches/previous/?limit=10&offset=10");
+        HttpResponseMessage response = await client.GetAsync("/2.3.0/launches/previous/?limit=100");
 
         // TODO - delete test request output when API is connected and working
         // ---------------------------------------------------------------
 
         // Fake api response
-        HttpResponseMessage response = new HttpResponseMessage();
+        //HttpResponseMessage response = new HttpResponseMessage();
 
         // Open JSON file and convert to string
         string jsonFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestLaunchResponse.json");
@@ -66,9 +66,9 @@ public class LaunchDataGet
             // Reads the JSON content of the API response and converts to launch object
 
             // TODO - Bring back when API is connected
-            //var res = await response.Content.ReadAsStringAsync();
+            var res = await response.Content.ReadAsStringAsync();
 
-            var res = testString;
+            //var res = testString;
 
             // Set up options for deserialising JSON that avoids case sensitivity
             JsonSerializerOptions? options = new JsonSerializerOptions
@@ -155,8 +155,6 @@ public class LaunchDataGet
                     }
 
                 }
-
-
 
             }
 

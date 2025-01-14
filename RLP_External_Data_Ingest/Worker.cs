@@ -23,6 +23,8 @@ public class Worker : BackgroundService
                 // TODO - Checks if the worker is still in use
                 _isInUse = true;
 
+                // TODO - Max out 15 requests per hour
+
                 // TODO - Checks if the data has been updated recently based on appsettings
 
                 // Calls the LaunchDataGet class to get the launch data and ingest to DB

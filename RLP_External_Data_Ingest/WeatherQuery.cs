@@ -12,9 +12,9 @@ namespace RLP_External_Data_Ingest
         // Method to get the weather data from the weather API using times and location
         public AverageWeatherMetrics GetWeather(string windowStart, string windowEnd, double latitude, double longitude)
         {
-            // Convert datetime strings from zulu time to local time
-            string start = DateTime.Parse(windowStart).ToString();
-            string end = DateTime.Parse(windowEnd).ToString();
+            // Convert datetime strings from zulu time to local date only
+            string start = DateTime.Parse(windowStart).ToString("yyyy-MM-dd");
+            string end = DateTime.Parse(windowEnd).ToString("yyyy-MM-dd");
 
             // Create query for API
             //string queryString = $"https://historical-forecast-api.open-meteo.com/v1/forecast?latitude={latitude}&longitude={longitude}&start_date={start}&end_date={end}&hourly=temperature_2m";
@@ -23,13 +23,13 @@ namespace RLP_External_Data_Ingest
             // Call API with query from Launch data
             using (HttpClient client = new HttpClient())
             {
-                //HttpResponseMessage response = client.GetAsync(queryString).Result;
+                HttpResponseMessage response = client.GetAsync(queryString).Result;
 
                 // TODO - delete test request output when API is connected and working
                 // ---------------------------------------------------------------
 
                 // Fake api response
-                HttpResponseMessage response = new HttpResponseMessage();
+                //HttpResponseMessage response = new HttpResponseMessage();
 
                 // Open JSON file and convert to string
                 string jsonFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestWeatherResponse.json");
@@ -42,7 +42,6 @@ namespace RLP_External_Data_Ingest
                     try
                     {
                         string responseBody = response.Content.ReadAsStringAsync().Result;
-                        Console.WriteLine(responseBody);
 
                         // Set up options for deserialising JSON that avoids case sensitivity
                         JsonSerializerOptions? options = new JsonSerializerOptions
@@ -51,7 +50,8 @@ namespace RLP_External_Data_Ingest
                         };
 
                         // Deserialise JSON response into weather object
-                        WeatherResponse weather = System.Text.Json.JsonSerializer.Deserialize<WeatherResponse>(testString, options);
+                        //WeatherResponse weather = System.Text.Json.JsonSerializer.Deserialize<WeatherResponse>(testString, options);
+                        WeatherResponse weather = System.Text.Json.JsonSerializer.Deserialize<WeatherResponse>(responseBody, options);
 
                         // Filter Results by time to get exact time for weather
                         var hourlyWeather = weather.Hourly;
