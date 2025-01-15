@@ -4,7 +4,7 @@ from tensorflow.keras.layers import Dense, Dropout
 import psycopg2
 
 # TODO - Ammend AI code to tailor to rocket launch data and db ingest and rertieval
-def create_model(input_shape):
+def success_rate_model(input_shape):
     model = Sequential()
     model.add(Dense(128, activation='relu', input_shape=(input_shape,)))
     model.add(Dropout(0.2))
@@ -40,6 +40,12 @@ def get_launch_data():
         
         # Retrieve query results
         launch_data = cursor.fetchall()
+
+        # Define column headers based on your table structure
+        column_headers = [desc[0] for desc in cursor.description]
+        
+        # Convert the fetched data into a list of dictionaries
+        launch_data = [dict(zip(column_headers, row)) for row in launch_data]
         
         # Close the cursor and connection
         cursor.close()
@@ -59,7 +65,9 @@ if __name__ == "__main__":
     else:
         print("Failed to retrieve launch data")
 
+    # TODO - Maybe perform some data preprocessing
+
     # Example usage
     input_shape = 10  # Replace with your actual input shape
-    model = create_model(input_shape)
+    model = success_rate_model(input_shape)
     model.summary()
