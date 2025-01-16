@@ -1,16 +1,20 @@
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Dropout
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report, confusion_matrix
 import psycopg2
+import pandas as pd
+import numpy as np
 
 # TODO - Ammend AI code to tailor to rocket launch data and db ingest and rertieval
-def success_rate_model(input_shape):
+# Creates a model for predicting the success rate of rocket launches
+def success_rate_model(X_train):
     model = Sequential()
-    model.add(Dense(128, activation='relu', input_shape=(input_shape,)))
+    model.add(Dense(128, activation='relu', input_shape=(X_train.shape[1],)))
     model.add(Dropout(0.2))
     model.add(Dense(64, activation='relu'))
     model.add(Dropout(0.2))
-    model.add(Dense(32, activation='relu'))
     model.add(Dense(1, activation='sigmoid'))  # Adjust the output layer based on your problem (e.g., regression or classification)
 
     model.compile(optimizer='adam',
@@ -67,7 +71,41 @@ if __name__ == "__main__":
 
     # TODO - Maybe perform some data preprocessing
 
-    # Example usage
-    input_shape = 10  # Replace with your actual input shape
-    model = success_rate_model(input_shape)
+    # Convert the retrieved data into a pandas DataFrame
+    launch_df = pd.DataFrame(launch_data)
+
+    # Split the data into features and labels
+    X = np.array([launch_df['StatusDescription'], launch_df['Temperature'], launch_df['Rain'], launch_df['Showers'], launch_df['Snowfall'], launch_df['CloudCover']
+                 , launch_df['CloudCoverLow'], launch_df['CloudCoverMid'], launch_df['CloudCoverHigh'], launch_df['Visibility']
+                 , launch_df['WindSpeed10m'], launch_df['WindSpeed80m'], launch_df['WindSpeed120m'], launch_df['WindSpeed180m']
+                 , launch_df['Temperature80m'], launch_df['Temperature120m'], launch_df['Temperature180m']]).T  # Features
+    y = np.array(launch_df['Status'])  # Labels
+
+    # Split the data into training and testing sets for model training
+    # TODO - Maybe change split technique
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+    # Training the model on the launch data training parameters
+    model = success_rate_model(X_train)
+
     model.summary()
+
+    # Train the model using the launch training data
+    model.fit(X_train, y_train, epochs=10, batch_size=32)
+
+    # Create predictions using the model
+    y_pred = (model.predict(X_test) > 0.5).astype("int32")
+    
+    # Evaluate the model using evaluation metrics
+    loss, accuracy = model.evaluate(X_test, y_test)
+    print(f"Test Accuracy: {accuracy:.2f}")
+
+    # Confusion matrix
+    print("Confusion Matrix:")
+    print(confusion_matrix(y_test, y_pred))
+
+    # Classification report
+    print("\nClassification Report:")
+    print(classification_report(y_test, y_pred))
+
+
