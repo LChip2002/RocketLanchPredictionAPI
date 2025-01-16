@@ -6,6 +6,7 @@
 *.exe
 *.o
 *.so
+*.cache
 
 # Packages #
 ############
@@ -79,3 +80,6 @@ yarn-error.log
 *.user
 *.userosscache
 *.sln.docstates
+*.suo
+*.cache
+*.pdb
