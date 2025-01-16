@@ -3,6 +3,7 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Dropout
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, confusion_matrix
+from sklearn.preprocessing import LabelEncoder
 import psycopg2
 import pandas as pd
 import numpy as np
@@ -17,6 +18,7 @@ def success_rate_model(X_train):
     model.add(Dropout(0.2))
     model.add(Dense(1, activation='sigmoid'))  # Adjust the output layer based on your problem (e.g., regression or classification)
 
+    # Compile the model
     model.compile(optimizer='adam',
                   loss='binary_crossentropy',  # Adjust the loss function based on your problem
                   metrics=['accuracy'])
@@ -75,11 +77,16 @@ if __name__ == "__main__":
     launch_df = pd.DataFrame(launch_data)
 
     # Split the data into features and labels
-    X = np.array([launch_df['StatusDescription'], launch_df['Temperature'], launch_df['Rain'], launch_df['Showers'], launch_df['Snowfall'], launch_df['CloudCover']
+    X = np.array([launch_df['Temperature'], launch_df['Rain'], launch_df['Showers'], launch_df['Snowfall'], launch_df['CloudCover']
                  , launch_df['CloudCoverLow'], launch_df['CloudCoverMid'], launch_df['CloudCoverHigh'], launch_df['Visibility']
                  , launch_df['WindSpeed10m'], launch_df['WindSpeed80m'], launch_df['WindSpeed120m'], launch_df['WindSpeed180m']
                  , launch_df['Temperature80m'], launch_df['Temperature120m'], launch_df['Temperature180m']]).T  # Features
+    
     y = np.array(launch_df['Status'])  # Labels
+
+    # Transforms the string ground truth into a numerical value
+    le = LabelEncoder()
+    y = le.fit_transform(y)
 
     # Split the data into training and testing sets for model training
     # TODO - Maybe change split technique
@@ -91,7 +98,7 @@ if __name__ == "__main__":
     model.summary()
 
     # Train the model using the launch training data
-    model.fit(X_train, y_train, epochs=10, batch_size=32)
+    model.fit(X_train, y_train, epochs=10)
 
     # Create predictions using the model
     y_pred = (model.predict(X_test) > 0.5).astype("int32")
