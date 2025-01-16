@@ -1,0 +1,81 @@
+# Compiled source #
+###################
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.so
+
+# Packages #
+############
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+
+# Logs and databases #
+######################
+*.log
+*.sql
+*.sqlite
+
+# OS generated files #
+######################
+.DS_Store
+Thumbs.db
+
+# Python #
+##########
+*.pyc
+*.pyo
+__pycache__/
+
+# Virtual environments #
+########################
+venv/
+env/
+
+# Jupyter Notebook #
+####################
+.ipynb_checkpoints/
+
+# VS Code #
+###########
+.vscode/
+
+# macOS #
+#########
+*.DS_Store
+
+# Node.js #
+###########
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# JetBrains #
+#############
+.idea/
+*.iml
+*.iws
+
+# Eclipse #
+###########
+.project
+.classpath
+.cproject
+.settings/
+
+# Visual Studio #
+#################
+.vs/
+*.csproj.user
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
