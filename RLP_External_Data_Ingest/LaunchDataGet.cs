@@ -3,6 +3,8 @@ using System.Text.Json;
 using Newtonsoft.Json;
 using RLP_DB.Models;
 using RLP_DB;
+using Serilog;
+using Microsoft.EntityFrameworkCore;
 
 namespace RLP_External_Data_Ingest;
 
@@ -21,7 +23,7 @@ public class LaunchDataGet
     // Constructor for the class where we initialise API connections
     public LaunchDataGet()
     {
-        // TODO - Put this in an appsettings
+        // Public API client for the Launch Library 2 API
         client = new HttpClient();
         client.BaseAddress = new Uri("https://ll.thespacedevs.com/");
         client.Timeout = new TimeSpan(0, 0, 30);
@@ -41,10 +43,11 @@ public class LaunchDataGet
     // See https://ll.thespacedevs.com/docs/#/launches/launches_previous_list for reference
     public async Task LaunchAPIRetrieval()
     {
+
         // Checks if the worker is still in use
         while (isBusy)
         {
-            Console.WriteLine("API retrieval is busy");
+            Log.Information("API retrieval is busy");
         }
 
         isBusy = true;
@@ -58,29 +61,13 @@ public class LaunchDataGet
             // Actual API connection
             HttpResponseMessage response = await client.GetAsync($"/2.3.0/launches/previous/?limit=100&offset={offsetNo}");
 
-            // TODO - delete test request output when API is connected and working
-            // ---------------------------------------------------------------
-
-            // Fake api response
-            //HttpResponseMessage response = new HttpResponseMessage();
-
-            // Open JSON file and convert to string
-            string jsonFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestLaunchResponse.json");
-            string testString = await File.ReadAllTextAsync(jsonFilePath);
-
-            // ---------------------------------------------------------------
-
             // Checks if a successful response code has been outputted for the connection
-            if (response.IsSuccessStatusCode || testString != null)
+            if (response.IsSuccessStatusCode)
             {
-                Console.WriteLine("Success");
+                Log.Information("API retrieval successful");
 
                 // Reads the JSON content of the API response and converts to launch object
-
-                // TODO - Bring back when API is connected
                 var res = await response.Content.ReadAsStringAsync();
-
-                //var res = testString;
 
                 // Set up options for deserialising JSON that avoids case sensitivity
                 JsonSerializerOptions? options = new JsonSerializerOptions
@@ -91,8 +78,15 @@ public class LaunchDataGet
                 LaunchObject? launch = System.Text.Json.JsonSerializer.Deserialize<LaunchObject>(res, options);
                 using (var context = new PostgresV1Context())
                 {
-                    context.Database.EnsureCreated();
-                    var launchEntries = new List<LaunchEntry>();
+                    // Ensure the database is created
+                    await context.Database.EnsureCreatedAsync();
+
+                    // Checks if the launch object is null or empty
+                    if (launch == null || launch.Results.Count == 0)
+                    {
+                        Log.Information("No results");
+                        continue;
+                    }
 
                     // Loop through each launch in the launch object
                     for (int i = 0; i < launch.Results.Count; i++)
@@ -143,31 +137,39 @@ public class LaunchDataGet
                                 Temperature180m = weather.Temperature180m
                             };
 
-                            launchEntries.Add(launchEntry);
-                            Console.WriteLine(launchEntries.Count);
-
                             // Check if the launch entry already exists in the database
                             // Attempts to ingest launch entry to the database
-                            var existingEntry = await context.Set<LaunchEntry>().FindAsync(launchEntry.Id);
-                            if (existingEntry == null)
+                            // var existingEntry = await context.Set<LaunchEntry>().FindAsync(launchEntry.Id);
+                            // if (existingEntry == null)
+                            // {
+                            //     Log.Information("Adding new launch entry to database");
+                            //     // Attempts to add the launch entry to the database
+                            //     context.Set<LaunchEntry>().Add(launchEntry);
+                            //     await context.SaveChangesAsync();
+                            // }
+                            // else
+                            // {
+                            //     Log.Debug("Launch entry already exists in database");
+                            // }
+                            try
                             {
                                 Console.WriteLine("Adding new launch entry to database");
                                 // Attempts to add the launch entry to the database
                                 context.Set<LaunchEntry>().Add(launchEntry);
                                 await context.SaveChangesAsync();
                             }
-                            else
+                            catch (DbUpdateException ex)
                             {
-                                Console.WriteLine("Launch entry already exists in database");
+                                Console.WriteLine(ex);
+                                Log.Error(ex, "Error adding launch entry to database");
                             }
+
                         }
                         catch (Exception e)
                         {
-                            Console.WriteLine(e);
+                            Log.Error(e, "Error while creating launch entry");
                         }
-
                     }
-
                 }
 
                 // Increment the offset number for the next API request
@@ -176,12 +178,10 @@ public class LaunchDataGet
             }
             else
             {
-                Console.WriteLine("Fail");
+                Log.Error("API retrieval failed or timed out");
                 Thread.Sleep(5000);
                 break;
             }
-
-
         }
 
         isBusy = false;
