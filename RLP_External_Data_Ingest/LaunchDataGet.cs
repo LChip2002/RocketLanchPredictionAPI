@@ -160,8 +160,7 @@ public class LaunchDataGet
                             }
                             catch (DbUpdateException ex)
                             {
-                                Console.WriteLine(ex);
-                                Log.Error(ex, "Error adding launch entry to database");
+                                Log.Error(ex.Message, "Error adding launch entry to database");
                             }
 
                         }
@@ -175,6 +174,12 @@ public class LaunchDataGet
                 // Increment the offset number for the next API request
                 offsetNo += 100;
 
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
+            {
+                Log.Error("API retrieval failed due to too many requests");
+                Thread.Sleep(5000);
+                break;
             }
             else
             {
