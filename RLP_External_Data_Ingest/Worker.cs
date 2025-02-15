@@ -4,7 +4,7 @@ public class Worker : BackgroundService
 {
     // Using ILogger for Console Logging and Debugging
     private readonly ILogger<Worker> _logger;
-    private bool _isInUse = false;
+    private bool _isInUse { get; set; }
 
     public Worker(ILogger<Worker> logger)
     {
@@ -20,7 +20,6 @@ public class Worker : BackgroundService
         {
             if (_logger.IsEnabled(LogLevel.Information) && !_isInUse)
             {
-                // TODO - Checks if the worker is still in use
                 _isInUse = true;
 
                 // TODO - Max out 15 requests per hour

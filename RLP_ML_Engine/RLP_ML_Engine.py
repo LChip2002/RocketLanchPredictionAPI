@@ -3,25 +3,23 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Dropout
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, confusion_matrix
-from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import LabelEncoder, StandardScaler
 import psycopg2
 import pandas as pd
 import numpy as np
 
-# TODO - Ammend AI code to tailor to rocket launch data and db ingest and rertieval
+# TODO - Compare classification models and other models potentially
 # Creates a model for predicting the success rate of rocket launches
 def success_rate_model(X_train):
-    model = Sequential()
-    model.add(Dense(128, activation='relu', input_shape=(X_train.shape[1],)))
-    model.add(Dropout(0.2))
-    model.add(Dense(64, activation='relu'))
-    model.add(Dropout(0.2))
-    model.add(Dense(1, activation='sigmoid'))  # Adjust the output layer based on your problem (e.g., regression or classification)
+    # Define model
+    model = Sequential([
+    Dense(32, activation='relu', input_shape=(X_train.shape[1],)),
+    Dense(16, activation='relu'),
+    Dense(1, activation='sigmoid')  # Binary classification
+    ])
 
-    # Compile the model
-    model.compile(optimizer='adam',
-                  loss='binary_crossentropy',  # Adjust the loss function based on your problem
-                  metrics=['accuracy'])
+    # Compile model
+    model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
 
     return model
 
@@ -63,6 +61,10 @@ def get_launch_data():
         print(f"Error: {e}")
         return None
 
+def store_results():
+    pass
+    
+
 if __name__ == "__main__":
 
     launch_data = get_launch_data()
@@ -82,15 +84,20 @@ if __name__ == "__main__":
                  , launch_df['WindSpeed10m'], launch_df['WindSpeed80m'], launch_df['WindSpeed120m'], launch_df['WindSpeed180m']
                  , launch_df['Temperature80m'], launch_df['Temperature120m'], launch_df['Temperature180m']]).T  # Features
     
-    y = np.array(launch_df['Status'])  # Labels
+    y = launch_df['Status']  # Labels
+
 
     # Transforms the string ground truth into a numerical value
     le = LabelEncoder()
     y = le.fit_transform(y)
 
     # Split the data into training and testing sets for model training
-    # TODO - Maybe change split technique
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+    # Normalize features
+    scaler = StandardScaler()
+    X_train = scaler.fit_transform(X_train)
+    X_test = scaler.transform(X_test)
 
     # Training the model on the launch data training parameters
     model = success_rate_model(X_train)
@@ -98,10 +105,13 @@ if __name__ == "__main__":
     model.summary()
 
     # Train the model using the launch training data
-    model.fit(X_train, y_train, epochs=10)
+    model.fit(X_train, y_train, epochs=50, batch_size=8, validation_data=(X_test, y_test))
 
     # Create predictions using the model
     y_pred = (model.predict(X_test) > 0.5).astype("int32")
+
+    # Check the prediction
+    print(y_pred)
     
     # Evaluate the model using evaluation metrics
     loss, accuracy = model.evaluate(X_test, y_test)
@@ -114,5 +124,14 @@ if __name__ == "__main__":
     # Classification report
     print("\nClassification Report:")
     print(classification_report(y_test, y_pred))
+
+    # TODO - Save the model and ingest results into the Postgres DB
+    # Save the model
+    model.save("success_rate_model.h5")
+    print("Model saved successfully")
+
+    # TODO - Ingest the results into the Postgres DB
+    store_results()
+
 
 
