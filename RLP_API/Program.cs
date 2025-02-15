@@ -10,8 +10,6 @@ builder.Services.AddSwaggerGen(c =>
     c.SwaggerDoc("v1", new() { Title = "RLP_API", Version = "v1" });
 });
 
-
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -26,6 +24,7 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+app.MapControllers();
 
 app.Run();
 
