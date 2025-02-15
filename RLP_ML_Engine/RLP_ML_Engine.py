@@ -62,7 +62,41 @@ def get_launch_data():
         return None
 
 def store_results():
-    pass
+    
+    # Connect to your postgres DB
+    conn = psycopg2.connect(
+        dbname="postgres",
+        user="postgres",
+        password="postgres",
+        host="localhost",
+        port="5432"
+    )
+
+    # TODO - Create an object with all model results to ingest into the DB
+    model_results = {
+        "model_name": "success_rate_model",
+        "accuracy": 0.85,
+        "loss": 0.15
+        }
+
+    # Create a cursor object
+    cursor = conn.cursor()
+
+    # TODO - Edit this to accomodate the data I want to store
+    # Ensure the table exists
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS model_results (
+        id SERIAL PRIMARY KEY,
+        model_name VARCHAR(255),
+        accuracy FLOAT,
+        loss FLOAT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+    """)
+    
+    # Execute a query
+    cursor.execute("INSERT INTO model_results (model_name, accuracy, loss) VALUES ('success_rate_model', 0.85, 0.15)")  # Adjust the query based on your table structure
+
     
 
 if __name__ == "__main__":
@@ -72,8 +106,6 @@ if __name__ == "__main__":
         print("Launch data retrieved successfully")
     else:
         print("Failed to retrieve launch data")
-
-    # TODO - Maybe perform some data preprocessing
 
     # Convert the retrieved data into a pandas DataFrame
     launch_df = pd.DataFrame(launch_data)
