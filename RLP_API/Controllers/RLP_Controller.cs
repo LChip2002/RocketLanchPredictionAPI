@@ -34,7 +34,7 @@ namespace RLP_API.Controllers
             }
 
             // Return the launch data
-            return Ok(JsonConvert.SerializeObject(launchEntries));
+            return Ok(launchEntries);
         }
 
         // GET: api/RLP_Controller/5
