@@ -2,13 +2,18 @@ import tensorflow as tf
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Dropout
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import classification_report, confusion_matrix
+from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 import psycopg2
 import pandas as pd
 import numpy as np
 
-# TODO - Compare classification models and other models potentially
+# Import classification models that already exist
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.naive_bayes import GaussianNB
+
 # Creates a model for predicting the success rate of rocket launches
 def success_rate_model(X_train):
     # Define model
@@ -110,6 +115,9 @@ if __name__ == "__main__":
     # Convert the retrieved data into a pandas DataFrame
     launch_df = pd.DataFrame(launch_data)
 
+    # Fills any null values with 0
+    launch_df.fillna(0, inplace=True)
+
     # Split the data into features and labels
     X = np.array([launch_df['Temperature'], launch_df['Rain'], launch_df['Showers'], launch_df['Snowfall'], launch_df['CloudCover']
                  , launch_df['CloudCoverLow'], launch_df['CloudCoverMid'], launch_df['CloudCoverHigh'], launch_df['Visibility']
@@ -123,8 +131,9 @@ if __name__ == "__main__":
     le = LabelEncoder()
     y = le.fit_transform(y)
 
+
     # Split the data into training and testing sets for model training
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
 
     # Normalize features
     scaler = StandardScaler()
@@ -136,34 +145,45 @@ if __name__ == "__main__":
 
     model.summary()
 
-    # Train the model using the launch training data
-    model.fit(X_train, y_train, epochs=50, batch_size=8, validation_data=(X_test, y_test))
+    modelList = [model, KNeighborsClassifier(n_neighbors=4), DecisionTreeClassifier(), RandomForestClassifier(), GaussianNB()]
+    modelNames = ["Custom Neural Network", "K-Nearest Neighbors", "Decision Tree", "Random Forest", "Naive Bayes"]
 
-    # Create predictions using the model
-    y_pred = (model.predict(X_test) > 0.5).astype("int32")
+    # Iterate through each model in the list, train it and evaluate it
+    for i in range(len(modelList)):
 
-    # Check the prediction
-    print(y_pred)
-    
-    # Evaluate the model using evaluation metrics
-    loss, accuracy = model.evaluate(X_test, y_test)
-    print(f"Test Accuracy: {accuracy:.2f}")
+        print(f"Training {modelNames[i]}")
+        
+        # Train the model using the launch training data
+        #modelList[i].fit(X_train, y_train, epochs=50, batch_size=8, validation_data=(X_test, y_test))
+        modelList[i].fit(X_train, y_train)
 
-    # Confusion matrix
-    print("Confusion Matrix:")
-    print(confusion_matrix(y_test, y_pred))
+        # Create predictions using the model
+        y_pred = (modelList[i].predict(X_test) > 0.5).astype("int32")
 
-    # Classification report
-    print("\nClassification Report:")
-    print(classification_report(y_test, y_pred))
+        # Check the prediction
+        print(y_pred)
 
-    # TODO - Save the model and ingest results into the Postgres DB
-    # Save the model
-    model.save("success_rate_model.h5")
-    print("Model saved successfully")
+        print(f"Evaluating model: {modelNames[i]}")
+        
+        # Evaluate the model using evaluation metrics
+        accuracy = accuracy_score(y_test, y_pred)
+        print(f"Test Accuracy: {accuracy:.2f}")
 
-    # TODO - Ingest the results into the Postgres DB
-    store_results()
+        # Confusion matrix
+        print("Confusion Matrix:")
+        print(confusion_matrix(y_test, y_pred))
+
+        # Classification report
+        print("\nClassification Report:")
+        print(classification_report(y_test, y_pred))
+
+    # # TODO - Save the model and ingest results into the Postgres DB
+    # # Save the model
+    # model.save("success_rate_model.h5")
+    # print("Model saved successfully")
+
+    # # TODO - Ingest the results of each model into the Postgres DB
+    # store_results()
 
 
 
