@@ -1,5 +1,6 @@
 using System.Runtime.InteropServices;
 using System.Text.Json;
+using Serilog;
 
 namespace RLP_External_Data_Ingest
 {
@@ -17,7 +18,6 @@ namespace RLP_External_Data_Ingest
             string end = DateTime.Parse(windowEnd).ToString("yyyy-MM-dd");
 
             // Create query for API
-            //string queryString = $"https://historical-forecast-api.open-meteo.com/v1/forecast?latitude={latitude}&longitude={longitude}&start_date={start}&end_date={end}&hourly=temperature_2m";
             string queryString = $"https://historical-forecast-api.open-meteo.com/v1/forecast?latitude={latitude}&longitude={longitude}&start_date={start}&end_date={end}&hourly=temperature_2m,rain,showers,snowfall,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,visibility,wind_speed_10m,wind_speed_80m,wind_speed_120m,wind_speed_180m,temperature_80m,temperature_120m,temperature_180m";
 
             // Call API with query from Launch data
@@ -25,19 +25,7 @@ namespace RLP_External_Data_Ingest
             {
                 HttpResponseMessage response = client.GetAsync(queryString).Result;
 
-                // TODO - delete test request output when API is connected and working
-                // ---------------------------------------------------------------
-
-                // Fake api response
-                //HttpResponseMessage response = new HttpResponseMessage();
-
-                // Open JSON file and convert to string
-                string jsonFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TestWeatherResponse.json");
-                string testString = File.ReadAllText(jsonFilePath);
-
-                // ----------------------------------------------------------------
-
-                if (response.IsSuccessStatusCode || testString != null)
+                if (response.IsSuccessStatusCode)
                 {
                     try
                     {
@@ -50,11 +38,10 @@ namespace RLP_External_Data_Ingest
                         };
 
                         // Deserialise JSON response into weather object
-                        //WeatherResponse weather = System.Text.Json.JsonSerializer.Deserialize<WeatherResponse>(testString, options);
                         WeatherResponse weather = System.Text.Json.JsonSerializer.Deserialize<WeatherResponse>(responseBody, options);
 
                         // Filter Results by time to get exact time for weather
-                        var hourlyWeather = weather.Hourly;
+                        WeatherHourResponse hourlyWeather = weather.Hourly;
 
                         // Get time indexes are between start and end launch window
                         List<int> timeIndexes = new List<int>();
@@ -94,6 +81,7 @@ namespace RLP_External_Data_Ingest
                     }
                     catch (Exception e)
                     {
+                        Log.Information("Error: " + e.Message);
                         Console.WriteLine("Error: " + e.Message);
                     }
 
