@@ -77,21 +77,22 @@ def store_results():
         port="5432"
     )
 
-    # TODO - Create an object with all model results to ingest into the DB
-    model_results = {
-        "model_name": "success_rate_model",
-        "accuracy": 0.85,
-        "loss": 0.15
-        }
+    # # TODO - Create an object with all model results to ingest into the DB
+    # launch_prediction = {
+    #     "model_name": "success_rate_model",
+    #     "accuracy": 0.85,
+    #     "loss": 0.15
+    #     }
 
     # Create a cursor object
     cursor = conn.cursor()
 
-    # TODO - Edit this to accomodate the data I want to store
+    # TODO - Edit this to accomodate the data I want to store after designing the entity
     # Ensure the table exists
     cursor.execute("""
-    CREATE TABLE IF NOT EXISTS model_results (
+    CREATE TABLE IF NOT EXISTS launch_predictions (
         id SERIAL PRIMARY KEY,
+        params JSONB,
         model_name VARCHAR(255),
         accuracy FLOAT,
         loss FLOAT,
@@ -100,8 +101,10 @@ def store_results():
     """)
     
     # Execute a query
-    cursor.execute("INSERT INTO model_results (model_name, accuracy, loss) VALUES ('success_rate_model', 0.85, 0.15)")  # Adjust the query based on your table structure
+    cursor.execute("INSERT INTO launch_predictions (model_name, accuracy, loss) VALUES ('success_rate_model', 0.85, 0.15)")  # Adjust the query based on your table structure
 
+    # Commit the transaction
+    conn.commit()
     
 
 if __name__ == "__main__":
@@ -182,8 +185,8 @@ if __name__ == "__main__":
     # model.save("success_rate_model.h5")
     # print("Model saved successfully")
 
-    # # TODO - Ingest the results of each model into the Postgres DB
-    # store_results()
+    # Ingest the results of each model into the Postgres DB
+    store_results()
 
 
 
