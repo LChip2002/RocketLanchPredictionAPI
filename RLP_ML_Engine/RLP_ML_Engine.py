@@ -157,7 +157,6 @@ if __name__ == "__main__":
         print(f"Training {modelNames[i]}")
         
         # Train the model using the launch training data
-        #modelList[i].fit(X_train, y_train, epochs=50, batch_size=8, validation_data=(X_test, y_test))
         modelList[i].fit(X_train, y_train)
 
         # Create predictions using the model
@@ -180,8 +179,7 @@ if __name__ == "__main__":
         print("\nClassification Report:")
         print(classification_report(y_test, y_pred))
 
-    # # TODO - Save the model and ingest results into the Postgres DB
-    # # Save the model
+    # TODO - Save the model with the best accuracy that can be used for future predictions by RLP_API
     # model.save("success_rate_model.h5")
     # print("Model saved successfully")
 

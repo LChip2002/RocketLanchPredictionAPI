@@ -39,16 +39,17 @@ namespace RLP_API.Controllers
 
         // GET: api/RLP_Controller/5
         [HttpGet("{id}")]
-        public IActionResult Get(int id)
+        public IActionResult GetGeneratedPredictions(int id)
         {
             return Ok($"Hello from RLP_Controller with id: {id}");
         }
 
+        // TODO - Will interact with the ML model to generate predictions
         // POST: api/RLP_Controller
         [HttpPost]
-        public IActionResult Post([FromBody] string value)
+        public IActionResult CreatePrediction([FromBody] string value)
         {
-            return CreatedAtAction(nameof(Post), new { value });
+            return Ok();
         }
 
         // PUT: api/RLP_Controller/5
