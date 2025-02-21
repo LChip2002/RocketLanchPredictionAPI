@@ -1,18 +1,48 @@
-import tensorflow as tf
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Dropout
+
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
+from sklearn.metrics import classification_report, confusion_matrix, accuracy_score, log_loss, precision_score, recall_score, f1_score
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 import psycopg2
 import pandas as pd
 import numpy as np
+import uuid
+import json
+
+# Import TensorFlow and Keras
+import tensorflow as tf
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Dropout
+from tensorflow.keras.losses import SparseCategoricalCrossentropy
 
 # Import classification models that already exist
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.naive_bayes import GaussianNB
+
+# Predicition results class
+class LaunchPrediction:
+    def __init__(self, model_name, accuracy, params_weather, params_rocket, result_id, results):
+        self.prediction_id = str(uuid.uuid4())  # Generate a unique ID for each prediction
+        self.model_name = model_name
+        self.accuracy = accuracy
+        self.params_weather = params_weather
+        self.params_rocket = params_rocket
+        self.result_id = result_id
+        self.results = results
+        
+# Linked table that contains the results of each model       
+class PredictionResults:
+    def __init__(self, model_name, accuracy, loss, precision, recall, f1_score):
+        self.result_id = str(uuid.uuid4())  # Generate a unique ID for each result
+        self.model_name = model_name
+        self.model_prediction = None
+        self.accuracy = accuracy
+        self.loss = loss
+        self.precision = precision
+        self.recall = recall
+        self.f1_score = f1_score
+
 
 # Creates a model for predicting the success rate of rocket launches
 def success_rate_model(X_train):
@@ -66,7 +96,7 @@ def get_launch_data():
         print(f"Error: {e}")
         return None
 
-def store_results():
+def store_results(launch_predictions):
     
     # Connect to your postgres DB
     conn = psycopg2.connect(
@@ -77,32 +107,61 @@ def store_results():
         port="5432"
     )
 
-    # # TODO - Create an object with all model results to ingest into the DB
-    # launch_prediction = {
-    #     "model_name": "success_rate_model",
-    #     "accuracy": 0.85,
-    #     "loss": 0.15
-    #     }
-
     # Create a cursor object
     cursor = conn.cursor()
-
-    # TODO - Edit this to accomodate the data I want to store after designing the entity
-    # Ensure the table exists
-    cursor.execute("""
+    
+    # SQL to create tables for storing launch predictions and results of each model
+    CREATE_LAUNCH_PREDICTIONS_TABLE = """
     CREATE TABLE IF NOT EXISTS launch_predictions (
-        id SERIAL PRIMARY KEY,
-        params JSONB,
-        model_name VARCHAR(255),
+        prediction_id UUID PRIMARY KEY,
+        model_name TEXT NOT NULL,
+        accuracy FLOAT,
+        params_weather JSONB,
+        params_rocket JSONB,
+        results JSONB,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        result_id UUID,
+        FOREIGN KEY (result_id) REFERENCES prediction_results(result_id)
+    )
+    """
+
+    CREATE_PREDICTION_RESULTS_TABLE = """
+    CREATE TABLE IF NOT EXISTS prediction_results (
+        result_id UUID PRIMARY KEY,
+        model_name TEXT NOT NULL,
         accuracy FLOAT,
         loss FLOAT,
+        precision FLOAT,
+        recall FLOAT,
+        f1_score FLOAT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
-    """)
-    
-    # Execute a query
-    cursor.execute("INSERT INTO launch_predictions (model_name, accuracy, loss) VALUES ('success_rate_model', 0.85, 0.15)")  # Adjust the query based on your table structure
+    """
 
+    cursor.execute(CREATE_PREDICTION_RESULTS_TABLE)
+    cursor.execute(CREATE_LAUNCH_PREDICTIONS_TABLE)
+    
+    # Ingest the resultant data into the DB
+
+    for prediction in launch_predictions:
+        
+        print(prediction.results.accuracy)
+        cursor.execute(
+            """
+            INSERT INTO prediction_results (result_id, model_name, accuracy, loss, precision, recall, f1_score)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            """,
+            (prediction.results.result_id, prediction.results.model_name, prediction.results.accuracy, prediction.results.loss, prediction.results.precision, prediction.results.recall, prediction.results.f1_score)
+        )
+
+        cursor.execute(
+            """
+            INSERT INTO launch_predictions (prediction_id, model_name, accuracy, params_weather, params_rocket, result_id)
+            VALUES (%s, %s, %s, %s, %s, %s)
+            """,
+            (prediction.prediction_id, prediction.model_name, prediction.accuracy, json.dumps(prediction.params_weather), json.dumps(prediction.params_rocket), prediction.result_id)
+        )    
+    
     # Commit the transaction
     conn.commit()
     
@@ -120,6 +179,9 @@ if __name__ == "__main__":
 
     # Fills any null values with 0
     launch_df.fillna(0, inplace=True)
+
+    # Replaces partial failure as failure
+    launch_df['Status'] = launch_df['Status'].replace('Launch was a Partial Failure', 'Launch Failure')
 
     # Split the data into features and labels
     X = np.array([launch_df['Temperature'], launch_df['Rain'], launch_df['Showers'], launch_df['Snowfall'], launch_df['CloudCover']
@@ -151,6 +213,10 @@ if __name__ == "__main__":
     modelList = [model, KNeighborsClassifier(n_neighbors=4), DecisionTreeClassifier(), RandomForestClassifier(), GaussianNB()]
     modelNames = ["Custom Neural Network", "K-Nearest Neighbors", "Decision Tree", "Random Forest", "Naive Bayes"]
 
+    # Create a list of objects to store the results of each model that can be stored in the DB
+    results = []
+    launch_predictions = []
+
     # Iterate through each model in the list, train it and evaluate it
     for i in range(len(modelList)):
 
@@ -167,9 +233,25 @@ if __name__ == "__main__":
 
         print(f"Evaluating model: {modelNames[i]}")
         
-        # Evaluate the model using evaluation metrics
+        # Evaluate accuracy of the model
         accuracy = accuracy_score(y_test, y_pred)
         print(f"Test Accuracy: {accuracy:.2f}")
+
+        # Evaluate loss
+        loss = log_loss(y_test, y_pred)
+        print(f"Log Loss: {loss:.2f}")
+
+        # Evaluate precision
+        precision = precision_score(y_test, y_pred)
+        print(f"Precision: {precision:.2f}")
+
+        # Evaluate recall
+        recall = recall_score(y_test, y_pred)
+        print(f"Recall: {recall:.2f}")
+
+        # Evaluate F1 score
+        f1 = f1_score(y_test, y_pred)
+        print(f"F1 Score: {f1:.2f}")
 
         # Confusion matrix
         print("Confusion Matrix:")
@@ -179,12 +261,58 @@ if __name__ == "__main__":
         print("\nClassification Report:")
         print(classification_report(y_test, y_pred))
 
+        # Interpret the prediction
+        y_pred = le.inverse_transform(y_pred)
+
+        # Check the prediction
+        print(y_pred)
+
+        # Store model predictions in the results dictionary
+        result = PredictionResults(modelNames[i], accuracy, loss, precision, recall, f1)
+        #results.append(result)
+
+        # Create a LaunchPrediction object for each row in the dataframe used in the test data
+        for index, row in enumerate(X_test):
+            params_weather = {
+                "Temperature": row[0],
+                "Rain": row[1],
+                "Showers": row[2],
+                "Snowfall": row[3],
+                "CloudCover": row[4],
+                "CloudCoverLow": row[5],
+                "CloudCoverMid": row[6],
+                "CloudCoverHigh": row[7],
+                "Visibility": row[8],
+                "WindSpeed10m": row[9],
+                "WindSpeed80m": row[10],
+                "WindSpeed120m": row[11],
+                "WindSpeed180m": row[12],
+                "Temperature80m": row[13],
+                "Temperature120m": row[14],
+                "Temperature180m": row[15]
+            }
+            params_rocket = {
+                # Add rocket parameters here if available
+            }
+            #results[index].model_prediction = y_pred[index]
+            result.model_prediction = y_pred[index]
+            
+            launch_prediction = LaunchPrediction(
+                model_name=result.model_name,
+                accuracy=result.accuracy,
+                params_weather=params_weather,
+                params_rocket=params_rocket,
+                result_id = result.result_id,
+                results=result
+            )
+            launch_predictions.append(launch_prediction)
+    
     # TODO - Save the model with the best accuracy that can be used for future predictions by RLP_API
     # model.save("success_rate_model.h5")
     # print("Model saved successfully")
 
     # Ingest the results of each model into the Postgres DB
-    store_results()
+    store_results(launch_predictions)
 
 
 
