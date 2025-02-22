@@ -22,10 +22,8 @@ from sklearn.naive_bayes import GaussianNB
 
 # Predicition results class
 class LaunchPrediction:
-    def __init__(self, model_name, accuracy, params_weather, params_rocket, result_id, results):
+    def __init__(self, params_weather, params_rocket, result_id, results):
         self.prediction_id = str(uuid.uuid4())  # Generate a unique ID for each prediction
-        self.model_name = model_name
-        self.accuracy = accuracy
         self.params_weather = params_weather
         self.params_rocket = params_rocket
         self.result_id = result_id
@@ -33,10 +31,10 @@ class LaunchPrediction:
         
 # Linked table that contains the results of each model       
 class PredictionResults:
-    def __init__(self, model_name, accuracy, loss, precision, recall, f1_score):
-        self.result_id = str(uuid.uuid4())  # Generate a unique ID for each result
+    def __init__(self, result_id, model_name, model_prediction, accuracy, loss, precision, recall, f1_score):
+        self.result_id = result_id
         self.model_name = model_name
-        self.model_prediction = None
+        self.model_prediction = model_prediction
         self.accuracy = accuracy
         self.loss = loss
         self.precision = precision
@@ -114,13 +112,10 @@ def store_results(launch_predictions):
     CREATE_LAUNCH_PREDICTIONS_TABLE = """
     CREATE TABLE IF NOT EXISTS launch_predictions (
         prediction_id UUID PRIMARY KEY,
-        model_name TEXT NOT NULL,
-        accuracy FLOAT,
         params_weather JSONB,
         params_rocket JSONB,
-        results JSONB,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         result_id UUID,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (result_id) REFERENCES prediction_results(result_id)
     )
     """
@@ -129,38 +124,43 @@ def store_results(launch_predictions):
     CREATE TABLE IF NOT EXISTS prediction_results (
         result_id UUID PRIMARY KEY,
         model_name TEXT NOT NULL,
+        model_prediction TEXT,
         accuracy FLOAT,
         loss FLOAT,
         precision FLOAT,
         recall FLOAT,
-        f1_score FLOAT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        f1_score FLOAT
     )
     """
 
     cursor.execute(CREATE_PREDICTION_RESULTS_TABLE)
     cursor.execute(CREATE_LAUNCH_PREDICTIONS_TABLE)
     
+    print("Storing prediction results")
+
     # Ingest the resultant data into the DB
-
     for prediction in launch_predictions:
-        
-        print(prediction.results.accuracy)
-        cursor.execute(
-            """
-            INSERT INTO prediction_results (result_id, model_name, accuracy, loss, precision, recall, f1_score)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
-            """,
-            (prediction.results.result_id, prediction.results.model_name, prediction.results.accuracy, prediction.results.loss, prediction.results.precision, prediction.results.recall, prediction.results.f1_score)
-        )
+        try:
+            cursor.execute(
+                """
+                INSERT INTO prediction_results (result_id, model_name, model_prediction, accuracy, loss, precision, recall, f1_score)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                """,
+                (prediction.result_id, prediction.results.model_name, prediction.results.model_prediction, prediction.results.accuracy, prediction.results.loss, prediction.results.precision, prediction.results.recall, prediction.results.f1_score)
+            )
 
-        cursor.execute(
-            """
-            INSERT INTO launch_predictions (prediction_id, model_name, accuracy, params_weather, params_rocket, result_id)
-            VALUES (%s, %s, %s, %s, %s, %s)
-            """,
-            (prediction.prediction_id, prediction.model_name, prediction.accuracy, json.dumps(prediction.params_weather), json.dumps(prediction.params_rocket), prediction.result_id)
-        )    
+            cursor.execute(
+                """
+                INSERT INTO launch_predictions (prediction_id, params_weather, params_rocket, result_id)
+                VALUES (%s, %s, %s, %s)
+                """,
+                (prediction.prediction_id, json.dumps(prediction.params_weather), json.dumps(prediction.params_rocket), prediction.result_id)
+            )
+        except Exception as e:
+            print(f"Error: {e}")
+            continue
+
+        
     
     # Commit the transaction
     conn.commit()
@@ -214,7 +214,6 @@ if __name__ == "__main__":
     modelNames = ["Custom Neural Network", "K-Nearest Neighbors", "Decision Tree", "Random Forest", "Naive Bayes"]
 
     # Create a list of objects to store the results of each model that can be stored in the DB
-    results = []
     launch_predictions = []
 
     # Iterate through each model in the list, train it and evaluate it
@@ -267,10 +266,6 @@ if __name__ == "__main__":
         # Check the prediction
         print(y_pred)
 
-        # Store model predictions in the results dictionary
-        result = PredictionResults(modelNames[i], accuracy, loss, precision, recall, f1)
-        #results.append(result)
-
         # Create a LaunchPrediction object for each row in the dataframe used in the test data
         for index, row in enumerate(X_test):
             params_weather = {
@@ -294,12 +289,21 @@ if __name__ == "__main__":
             params_rocket = {
                 # Add rocket parameters here if available
             }
-            #results[index].model_prediction = y_pred[index]
-            result.model_prediction = y_pred[index]
+
+            # Create a new PredictionResults object
+            result = PredictionResults(
+                result_id=str(uuid.uuid4()),
+                model_name=modelNames[i],
+                model_prediction = y_pred[index], 
+                accuracy=accuracy, 
+                loss=loss, 
+                precision=precision, 
+                recall=recall, 
+                f1_score=f1
+            )
             
+            # Create a new LaunchPrediction object with the results
             launch_prediction = LaunchPrediction(
-                model_name=result.model_name,
-                accuracy=result.accuracy,
                 params_weather=params_weather,
                 params_rocket=params_rocket,
                 result_id = result.result_id,
