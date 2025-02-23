@@ -1,13 +1,16 @@
+using RLP_API.Enums;
+
 namespace RLP_API.Models
 {
     public class LaunchQuery
     {
-        public int? LaunchId { get; set; }
+        public Guid? LaunchId { get; set; }
         public string? MissionName { get; set; }
         public DateTime? LaunchStart { get; set; }
         public DateTime? LaunchEnd { get; set; }
-        public string? LaunchSite { get; set; }
+        public string? LaunchSiteLongitude { get; set; }
+        public string? LaunchSiteLatitude { get; set; }
         public string? RocketType { get; set; }
-        public bool? IsSuccessful { get; set; }
+        public LaunchStatus? IsSuccessful { get; set; }
     }
 }

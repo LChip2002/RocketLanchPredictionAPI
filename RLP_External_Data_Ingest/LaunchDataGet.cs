@@ -18,7 +18,7 @@ public class LaunchDataGet
     public bool isBusy { get; set; } = false;
 
     // Offset for the API request
-    public int offsetNo { get; set; } = 0;
+    public int offsetNo { get; set; } = 800;
 
     // Constructor for the class where we initialise API connections
     public LaunchDataGet()
@@ -58,6 +58,7 @@ public class LaunchDataGet
             // Test number of offset
             Console.WriteLine("Offset No: " + offsetNo);
 
+            // TODO - Change endpoints to retrieve based on success and failure to even out the training and test data in the ML engine
             // Actual API connection
             HttpResponseMessage response = await client.GetAsync($"/2.3.0/launches/previous/?limit=100&offset={offsetNo}");
 
@@ -67,7 +68,7 @@ public class LaunchDataGet
                 Log.Information("API retrieval successful");
 
                 // Reads the JSON content of the API response and converts to launch object
-                var res = await response.Content.ReadAsStringAsync();
+                string res = await response.Content.ReadAsStringAsync();
 
                 // Set up options for deserialising JSON that avoids case sensitivity
                 JsonSerializerOptions? options = new JsonSerializerOptions
@@ -137,23 +138,11 @@ public class LaunchDataGet
                                 Temperature180m = weather.Temperature180m
                             };
 
-                            // Check if the launch entry already exists in the database
-                            // Attempts to ingest launch entry to the database
-                            // var existingEntry = await context.Set<LaunchEntry>().FindAsync(launchEntry.Id);
-                            // if (existingEntry == null)
-                            // {
-                            //     Log.Information("Adding new launch entry to database");
-                            //     // Attempts to add the launch entry to the database
-                            //     context.Set<LaunchEntry>().Add(launchEntry);
-                            //     await context.SaveChangesAsync();
-                            // }
-                            // else
-                            // {
-                            //     Log.Debug("Launch entry already exists in database");
-                            // }
+                            // Attempt to add the launch entry to the database
                             try
                             {
                                 Console.WriteLine("Adding new launch entry to database");
+
                                 // Attempts to add the launch entry to the database
                                 context.Set<LaunchEntry>().Add(launchEntry);
                                 await context.SaveChangesAsync();
@@ -184,7 +173,7 @@ public class LaunchDataGet
             else
             {
                 Log.Error("API retrieval failed or timed out");
-                Thread.Sleep(5000);
+                Thread.Sleep(10000);
                 break;
             }
         }
