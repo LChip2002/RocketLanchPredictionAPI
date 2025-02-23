@@ -10,7 +10,6 @@ namespace RLP_API.Models
         public DateTime? LaunchEnd { get; set; }
         public string? LaunchSiteLongitude { get; set; }
         public string? LaunchSiteLatitude { get; set; }
-        public string? RocketType { get; set; }
         public LaunchStatus? IsSuccessful { get; set; }
     }
 }

@@ -14,7 +14,7 @@ namespace RLP_API.Services
             // Initialization code here
         }
 
-        // Example method to get launch data
+        // Get current launch data from the database
         public async Task<List<LaunchEntry>> GetLaunchDataAsync(LaunchQuery launchQuery)
         {
             try
@@ -62,6 +62,9 @@ namespace RLP_API.Services
                 return new List<LaunchEntry>();
             }
         }
+
+        // TODO - Get launch prediction data from the database
+
 
 
     }
