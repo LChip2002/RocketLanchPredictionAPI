@@ -2,7 +2,7 @@ using System.Net.Http.Headers;
 using System.Text.Json;
 using Newtonsoft.Json;
 using RLP_DB.Models;
-using RLP_DB;
+using RLP_DB.Contexts;
 using Serilog;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,7 +18,7 @@ public class LaunchDataGet
     public bool isBusy { get; set; } = false;
 
     // Offset for the API request
-    public int offsetNo { get; set; } = 800;
+    public int offsetNo { get; set; } = 0;
 
     // Constructor for the class where we initialise API connections
     public LaunchDataGet()

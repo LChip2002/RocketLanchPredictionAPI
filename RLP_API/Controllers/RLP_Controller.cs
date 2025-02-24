@@ -3,6 +3,7 @@ using RLP_API.Models;
 using RLP_API.Services;
 using RLP_DB.Models;
 using Newtonsoft.Json;
+using System.Threading.Tasks;
 
 namespace RLP_API.Controllers
 {
@@ -11,15 +12,21 @@ namespace RLP_API.Controllers
     public class RLP_Controller : ControllerBase
     {
         private readonly LaunchQueryService _launchQueryService;
+        private readonly PredictionQueryService _predictionQueryService;
 
         // Constructor
         public RLP_Controller()
         {
             // Initialization code here
             _launchQueryService = new LaunchQueryService();
+            _predictionQueryService = new PredictionQueryService();
         }
 
-        // GetLaunches endpoint
+        /// <summary>
+        /// GetLaunches endpoint
+        /// </summary>
+        /// <param name="launchQuery"></param>
+        /// <returns></returns>
         [HttpGet]
         [Route("GetLaunches")]
         public async Task<IActionResult> GetLaunches([FromQuery] LaunchQuery launchQuery)
@@ -37,19 +44,36 @@ namespace RLP_API.Controllers
             return Ok(launchEntries);
         }
 
-        // GET: api/RLP_Controller/5
+        /// <summary>
+        /// GetPredictions endpoint
+        /// </summary>
+        /// <param name="predictionQuery"></param>
+        /// <returns></returns>
         [HttpGet]
         [Route("GetPredictions")]
-        public IActionResult GetGeneratedPredictions(int id)
+        public async Task<IActionResult> GetGeneratedPredictions([FromQuery] PredictionQuery predictionQuery)
         {
-            return Ok($"Hello from RLP_Controller with id: {id}");
+            // Retrieve prediction data from the database
+            List<LaunchPrediction> predictions = await _predictionQueryService.GetPredictionDataAsync(predictionQuery);
+
+            // Checks if any entries are returned
+            if (predictions.Count == 0)
+            {
+                return NoContent();
+            }
+
+            return Ok(predictions);
         }
 
         // TODO - Will interact with the ML model to generate predictions
-        // POST: api/RLP_Controller
+        /// <summary>
+        /// CreatePrediction endpoint
+        /// </summary>
+        /// <param name="predictionMaker"></param>
+        /// <returns></returns>
         [HttpPost]
         [Route("CreatePrediction")]
-        public IActionResult CreatePrediction([FromBody] string value)
+        public IActionResult CreatePrediction([FromQuery] PredictionMaker predictionMaker)
         {
             return Ok();
         }

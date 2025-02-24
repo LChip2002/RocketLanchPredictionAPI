@@ -1,8 +1,9 @@
 using RLP_API.Models;
 using RLP_DB.Models;
-using RLP_DB;
+using RLP_DB.Contexts;
 using RLP_API.Enums;
 using Microsoft.EntityFrameworkCore;
+
 
 namespace RLP_API.Services
 {
