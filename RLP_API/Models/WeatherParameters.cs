@@ -10,6 +10,7 @@ namespace RLP_API.Models
         public double? CloudCoverMid { get; set; }
         public double? CloudCoverHigh { get; set; }
         public double? Visibility { get; set; }
+        public double? Temperature { get; set; }
         public double? WindSpeed10m { get; set; }
         public double? WindSpeed80m { get; set; }
         public double? WindSpeed120m { get; set; }

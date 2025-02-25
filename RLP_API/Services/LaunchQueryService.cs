@@ -63,10 +63,5 @@ namespace RLP_API.Services
                 return new List<LaunchEntry>();
             }
         }
-
-        // TODO - Get launch prediction data from the database
-
-
-
     }
 }

@@ -6,7 +6,6 @@ namespace RLP_API.Models
     {
         public Guid? Id { get; set; }
         public DateTime CreatedDateTime { get; set; }
-        public double? Temperature { get; set; }
 
         // Weather Params
         public WeatherParameters? WeatherParams { get; set; }
