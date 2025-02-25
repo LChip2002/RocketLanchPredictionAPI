@@ -7,7 +7,7 @@ namespace RLP_DB.Models;
 
 public partial class PredictionResult
 {
-    public Guid ResultId { get; set; }
+    public Guid? ResultId { get; set; }
 
     public string ModelName { get; set; } = null!;
 

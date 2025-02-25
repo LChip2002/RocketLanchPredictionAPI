@@ -31,6 +31,7 @@ namespace RLP_API.Services
                 {
                     // Query the DB
                     var predictions = context.LaunchPredictions;
+                    var predictionResults = context.PredictionResults;
 
                     List<LaunchPrediction> predictionsFiltered = new List<LaunchPrediction>();
 
@@ -38,6 +39,12 @@ namespace RLP_API.Services
                     {
                         // Filter the query based on the launchQuery object
                         predictionsFiltered = await predictions.Where(launch => launch.PredictionId == predQuery.Id).ToListAsync();
+
+                        // Get the results using the returned result IDs
+                        foreach (var prediction in predictionsFiltered)
+                        {
+                            prediction.Result = await predictionResults.Where(result => result.ResultId == prediction.ResultId).FirstOrDefaultAsync();
+                        }
                     }
 
                     // Filter for weather parameters
@@ -122,6 +129,12 @@ namespace RLP_API.Services
                         {
                             // Filter the query based on the launchQuery object
                             predictionsFiltered = predictions.AsEnumerable().Where(launch => JsonConvert.DeserializeObject<WeatherParameters>(launch.ParamsWeather).Temperature180m == predQuery.WeatherParams.Temperature180m).ToList();
+                        }
+
+                        // Get the results using the returned result IDs
+                        foreach (var prediction in predictionsFiltered)
+                        {
+                            prediction.Result = await predictionResults.Where(result => result.ResultId == prediction.ResultId).FirstOrDefaultAsync();
                         }
 
                     }
