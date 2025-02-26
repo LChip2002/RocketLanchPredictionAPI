@@ -13,12 +13,13 @@ public class LaunchDataGet
     private readonly HttpClient client;
     private readonly WeatherQuery weatherQuery;
 
-    private readonly TelemetryQuery telemetryQuery;
-
     public bool isBusy { get; set; } = false;
 
     // Offset for the API request
     public int offsetNo { get; set; } = 0;
+
+    // List of Launch Status Response Codes: 3 - Success, 4 - Failure, 7 - Partial Failure
+    public List<int> statusCodes { get; set; } = new List<int>() { 3, 4, 7 };
 
     // Constructor for the class where we initialise API connections
     public LaunchDataGet()
@@ -33,9 +34,6 @@ public class LaunchDataGet
 
         // Initialise the weather query class
         weatherQuery = new WeatherQuery();
-
-        // Initialise the telemetry query class
-        telemetryQuery = new TelemetryQuery();
 
     }
 
@@ -58,128 +56,145 @@ public class LaunchDataGet
             // Test number of offset
             Console.WriteLine("Offset No: " + offsetNo);
 
-            // TODO - Change endpoints to retrieve based on success and failure to even out the training and test data in the ML engine
-            // Actual API connection
-            HttpResponseMessage response = await client.GetAsync($"/2.3.0/launches/previous/?limit=100&offset={offsetNo}");
-
-            // Checks if a successful response code has been outputted for the connection
-            if (response.IsSuccessStatusCode)
+            // Checks if offset number is greater than 500
+            if (offsetNo > 500)
             {
-                Log.Information("API retrieval successful");
+                Log.Information("API retrieval completed");
+                break;
+            }
 
-                // Reads the JSON content of the API response and converts to launch object
-                string res = await response.Content.ReadAsStringAsync();
+            // Iterate through the status codes for the API calls to get more balanced status responses for the dataset
+            foreach (int statusCode in statusCodes)
+            {
+                // Log the status code being used
+                Log.Information("Status Code: {StatusCode}", statusCode);
 
-                // Set up options for deserialising JSON that avoids case sensitivity
-                JsonSerializerOptions? options = new JsonSerializerOptions
+                // Actual API connection
+                HttpResponseMessage response = await client.GetAsync($"/2.3.0/launches/previous/?status={statusCode}&limit=100&offset={offsetNo}");
+
+                // Checks if a successful response code has been outputted for the connection
+                if (response.IsSuccessStatusCode)
                 {
-                    PropertyNameCaseInsensitive = true
-                };
+                    Log.Information("API retrieval successful");
 
-                LaunchObject? launch = System.Text.Json.JsonSerializer.Deserialize<LaunchObject>(res, options);
-                using (var context = new PostgresV1Context())
-                {
-                    // Ensure the database is created
-                    await context.Database.EnsureCreatedAsync();
+                    // Reads the JSON content of the API response and converts to launch object
+                    string res = await response.Content.ReadAsStringAsync();
 
-                    // Checks if the launch object is null or empty
-                    if (launch == null || launch.Results.Count == 0)
+                    // Set up options for deserialising JSON that avoids case sensitivity
+                    JsonSerializerOptions? options = new JsonSerializerOptions
                     {
-                        Log.Information("No results");
-                        continue;
-                    }
+                        PropertyNameCaseInsensitive = true
+                    };
 
-                    // Loop through each launch in the launch object
-                    for (int i = 0; i < launch.Results.Count; i++)
+                    LaunchObject? launch = System.Text.Json.JsonSerializer.Deserialize<LaunchObject>(res, options);
+                    using (var context = new PostgresV1Context())
                     {
+                        // Ensure the database is created
+                        await context.Database.EnsureCreatedAsync();
 
-                        // Get relevant data from the launch object
-                        var item = launch.Results[i];
-
-                        // Query weather api with launch data date and location
-                        AverageWeatherMetrics? weather = weatherQuery.GetWeather(item.WindowStart, item.WindowEnd, item.Pad.Latitude, item.Pad.Longitude);
-
-                        // Query Telemitry API with launch data
-                        //List<Telemetry> telemetry = telemetryQuery.GetTelemetryData(item.Id);
-
-                        try
+                        // Checks if the launch object is null or empty
+                        if (launch == null || launch.Results.Count == 0)
                         {
-                            // Combine weather and launch data into new object
-                            LaunchEntry launchEntry = new LaunchEntry()
-                            {
-                                Id = item.Id,
-                                Name = item.Name,
-                                Description = item.Mission?.Description,
-                                Country = item.Pad.Location.Name,
-                                LaunchLatitude = item.Pad.Latitude,
-                                LaunchLongitude = item.Pad.Longitude,
-                                LaunchStart = item.WindowStart,
-                                LaunchEnd = item.WindowEnd,
-                                Status = item.Status.Name,
-                                StatusDescription = item.Status.Description,
-                                Rocket = item.Rocket.Configuration.Name,
-                                Mission = item.Mission.Name,
-                                Image = JsonConvert.SerializeObject(item.Image),
-                                Temperature = weather.Temperature,
-                                Rain = weather.Rain,
-                                Showers = weather.Showers,
-                                Snowfall = weather.Snowfall,
-                                CloudCover = weather.CloudCover,
-                                CloudCoverLow = weather.CloudCoverLow,
-                                CloudCoverMid = weather.CloudCoverMid,
-                                CloudCoverHigh = weather.CloudCoverHigh,
-                                Visibility = weather.Visibility,
-                                WindSpeed10m = weather.WindSpeed10m,
-                                WindSpeed80m = weather.WindSpeed80m,
-                                WindSpeed120m = weather.WindSpeed120m,
-                                WindSpeed180m = weather.WindSpeed180m,
-                                Temperature80m = weather.Temperature80m,
-                                Temperature120m = weather.Temperature120m,
-                                Temperature180m = weather.Temperature180m
-                            };
+                            Log.Information("No results");
+                            continue;
+                        }
 
-                            // Attempt to add the launch entry to the database
+                        // Loop through each launch in the launch object
+                        for (int i = 0; i < launch.Results.Count; i++)
+                        {
+
+                            // Get relevant data from the launch object
+                            var item = launch.Results[i];
+
+                            // Query weather api with launch data date and location
+                            AverageWeatherMetrics? weather = weatherQuery.GetWeather(item.WindowStart, item.WindowEnd, item.Pad.Latitude, item.Pad.Longitude);
+
                             try
                             {
-                                Console.WriteLine("Adding new launch entry to database");
+                                // Combine weather and launch data into new object
+                                LaunchEntry launchEntry = new LaunchEntry()
+                                {
+                                    Id = item.Id,
+                                    Name = item.Name,
+                                    Description = item.Mission?.Description,
+                                    Country = item.Pad.Location.Name,
+                                    LaunchLatitude = item.Pad.Latitude,
+                                    LaunchLongitude = item.Pad.Longitude,
+                                    LaunchStart = item.WindowStart,
+                                    LaunchEnd = item.WindowEnd,
+                                    Status = item.Status.Name,
+                                    StatusDescription = item.Status.Description,
+                                    Rocket = item.Rocket.Configuration.Name,
+                                    Mission = item.Mission.Name,
+                                    Image = JsonConvert.SerializeObject(item.Image),
+                                    Temperature = weather.Temperature,
+                                    Rain = weather.Rain,
+                                    Showers = weather.Showers,
+                                    Snowfall = weather.Snowfall,
+                                    CloudCover = weather.CloudCover,
+                                    CloudCoverLow = weather.CloudCoverLow,
+                                    CloudCoverMid = weather.CloudCoverMid,
+                                    CloudCoverHigh = weather.CloudCoverHigh,
+                                    Visibility = weather.Visibility,
+                                    WindSpeed10m = weather.WindSpeed10m,
+                                    WindSpeed80m = weather.WindSpeed80m,
+                                    WindSpeed120m = weather.WindSpeed120m,
+                                    WindSpeed180m = weather.WindSpeed180m,
+                                    Temperature80m = weather.Temperature80m,
+                                    Temperature120m = weather.Temperature120m,
+                                    Temperature180m = weather.Temperature180m
+                                };
 
-                                // Attempts to add the launch entry to the database
-                                context.Set<LaunchEntry>().Add(launchEntry);
-                                await context.SaveChangesAsync();
+                                // Attempt to add the launch entry to the database
+                                try
+                                {
+                                    Console.WriteLine("Adding new launch entry to database");
+
+                                    // Attempts to add the launch entry to the database
+                                    context.Set<LaunchEntry>().Add(launchEntry);
+                                    await context.SaveChangesAsync();
+                                }
+                                catch (DbUpdateException ex)
+                                {
+                                    // TODO - Edit Logging to be more specific
+                                    Log.Error(ex.Message, "Error adding launch entry to database");
+                                    throw;
+                                }
+
                             }
-                            catch (DbUpdateException ex)
+                            catch (Exception e)
                             {
-                                Log.Error(ex.Message, "Error adding launch entry to database");
+                                Log.Error(e.Message, "Error while creating launch entry");
                             }
-
-                        }
-                        catch (Exception e)
-                        {
-                            Log.Error(e, "Error while creating launch entry");
                         }
                     }
+
                 }
+                else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    Log.Error("API retrieval failed due to not found");
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
+                {
+                    Log.Error("API retrieval failed due to too many requests");
+                    Thread.Sleep(5000);
+                    break;
+                }
+                else
+                {
+                    Log.Error("API retrieval failed or timed out");
+                    Thread.Sleep(10000);
+                    break;
+                }
+            }
 
-                // Increment the offset number for the next API request
-                offsetNo += 100;
+            // Increment the offset number for the next API request
+            offsetNo += 100;
 
-            }
-            else if (response.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
-            {
-                Log.Error("API retrieval failed due to too many requests");
-                Thread.Sleep(5000);
-                break;
-            }
-            else
-            {
-                Log.Error("API retrieval failed or timed out");
-                Thread.Sleep(10000);
-                break;
-            }
         }
 
+        // Set the worker to no longer be busy
         isBusy = false;
-
 
     }
 
