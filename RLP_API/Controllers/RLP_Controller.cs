@@ -65,7 +65,6 @@ namespace RLP_API.Controllers
             return Ok(predictions);
         }
 
-        // TODO - Will interact with the ML model to generate predictions
         /// <summary>
         /// CreatePrediction endpoint
         /// </summary>
@@ -73,9 +72,18 @@ namespace RLP_API.Controllers
         /// <returns></returns>
         [HttpPost]
         [Route("CreatePrediction")]
-        public IActionResult CreatePrediction([FromQuery] PredictionMaker predictionMaker)
+        public async Task<IActionResult> CreatePrediction([FromQuery] PredictionMaker predictionMaker)
         {
-            return Ok();
+            // Returns the generated prediction data after querying the ML model
+            List<LaunchPrediction> predictions = await _predictionQueryService.MakePredictionAsync(predictionMaker);
+
+            // Checks if any entries are returned
+            if (predictions.Count == 0)
+            {
+                return NoContent();
+            }
+
+            return Ok(predictions);
         }
     }
 }
