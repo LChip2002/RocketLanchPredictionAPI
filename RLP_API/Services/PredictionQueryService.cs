@@ -178,10 +178,21 @@ namespace RLP_API.Services
                     // Attempts to return values from the stored model using a Python Script
                     try
                     {
+                        // Processes status input using static class
+                        string modelType = ModelTypeFunctions.GetModelType(predQuery.ModelType ?? default(ModelType));
+
+                        // Create dto object to parse to python script
+                        PredictionMakerDto dto = new()
+                        {
+                            RocketParams = predQuery.RocketParams,
+                            WeatherParams = predQuery.WeatherParams,
+                            ModelType = modelType
+                        };
+
                         var startInfo = new ProcessStartInfo
                         {
                             FileName = "python3",
-                            Arguments = $"\"{Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ModelLoader.py")}\" {predQuery}",
+                            Arguments = $"\"{Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ModelLoader.py")}\" {JsonConvert.SerializeObject(dto)}",
                             RedirectStandardOutput = true,
                             RedirectStandardError = true,
                             UseShellExecute = false,
@@ -210,6 +221,7 @@ namespace RLP_API.Services
                                 CreatedAt = DateTime.Now,
                                 ParamsRocket = predQuery.RocketParams,
                                 ParamsWeather = predQuery.WeatherParams,
+                                ModelType = predQuery.ModelType
 
                             };
 
