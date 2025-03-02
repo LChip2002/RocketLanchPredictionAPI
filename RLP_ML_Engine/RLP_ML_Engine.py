@@ -7,18 +7,19 @@ import pandas as pd
 import numpy as np
 import uuid
 import json
+import pickle
 
 # Import TensorFlow and Keras
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Dropout
-from tensorflow.keras.losses import SparseCategoricalCrossentropy
+from tensorflow.keras.layers import Dense
 
 # Import classification models that already exist
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.naive_bayes import GaussianNB
+import os
 
 # Predicition results class
 class LaunchPrediction:
@@ -93,6 +94,21 @@ def get_launch_data():
     except Exception as e:
         print(f"Error: {e}")
         return None
+
+# Save the trained model to a file
+def save_trained_model(model, model_name):
+    
+    # Save the trained model to a file using pickle
+
+    # Ensure the directory exists
+    directory = os.path.join(os.path.dirname(__file__), "RLP_ML_Models")
+    os.makedirs(directory, exist_ok=True)
+
+    # Creates a file with the model
+    with open(os.path.join(directory, f"{model_name}_model.pkl"), 'wb') as file:
+        pickle.dump(model, file)
+
+    print(f"Model {model_name} saved successfully")
 
 def store_results(launch_predictions):
     
@@ -189,7 +205,7 @@ if __name__ == "__main__":
                  , launch_df['WindSpeed10m'], launch_df['WindSpeed80m'], launch_df['WindSpeed120m'], launch_df['WindSpeed180m']
                  , launch_df['Temperature80m'], launch_df['Temperature120m'], launch_df['Temperature180m']]).T  # Features
     
-    y = launch_df['Status']  # Labels
+    y = launch_df['Status']  # Label for the status of the launch
 
 
     # Transforms the string ground truth into a numerical value
@@ -262,6 +278,9 @@ if __name__ == "__main__":
 
         # Interpret the prediction
         y_pred = le.inverse_transform(y_pred)
+        
+        # Saves the trained model for future use by RLP_API
+        save_trained_model(modelList[i], modelNames[i])
 
         # Check the prediction
         print(y_pred)
