@@ -7,5 +7,8 @@ namespace RLP_API.Models
 
         // Rocket Params
         public RocketParameters? RocketParams { get; set; }
+
+        // Model Type
+        public ModelType? ModelType { get; set; }
     }
 }

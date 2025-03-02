@@ -70,6 +70,7 @@ public class LaunchDataGet
                 Log.Information("Status Code: {StatusCode}", statusCode);
 
                 // Actual API connection
+                // TODO - Fix timeout issue with API connection
                 HttpResponseMessage response = await client.GetAsync($"/2.3.0/launches/previous/?status={statusCode}&limit=100&offset={offsetNo}");
 
                 // Checks if a successful response code has been outputted for the connection

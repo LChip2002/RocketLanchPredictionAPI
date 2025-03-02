@@ -6,6 +6,11 @@ using RLP_API.Enums;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using System.Text.Json;
+using Tensorflow;
+using Tensorflow.Keras.Models;
+using Microsoft.ML;
+using Serilog;
+using System.Diagnostics;
 
 namespace RLP_API.Services
 {
@@ -146,7 +151,7 @@ namespace RLP_API.Services
                         Console.WriteLine("Rocket parameters not yet implemented");
                     }
 
-                    // Return the launch entries
+                    // Return the predictions
                     return predictionsFiltered;
                 }
             }
@@ -158,33 +163,81 @@ namespace RLP_API.Services
         }
 
         /// <summary>
-        /// Make a prediction using the trained ML model
+        /// Make a prediction using the trained ML model and parsed inputs
         /// </summary>
         /// <param name="predQuery"></param>
         /// <returns></returns>
-        public async Task<List<LaunchEntry>> MakePredictionAsync(PredictionQuery predQuery)
+        public async Task<PredictionMakeDto> MakePredictionAsync(PredictionMaker predQuery)
         {
             try
             {
-                // Fetch the launch entries from the DB
-                using (var context = new PostgresV1Context())
+
+                // Load the model based on the model type
+                if (predQuery.ModelType != null)
                 {
-                    // TODO - Change for prediction table
-                    // Query the DB
-                    DbSet<LaunchEntry> launchEntries = context.LaunchEntries;
+                    // Attempts to return values from the stored model using a Python Script
+                    try
+                    {
+                        var startInfo = new ProcessStartInfo
+                        {
+                            FileName = "python3",
+                            Arguments = $"\"{Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ModelLoader.py")}\" {predQuery}",
+                            RedirectStandardOutput = true,
+                            RedirectStandardError = true,
+                            UseShellExecute = false,
+                            CreateNoWindow = true
+                        };
 
-                    List<LaunchEntry> launchEntriesFiltered = new List<LaunchEntry>();
+                        using (var process = new Process { StartInfo = startInfo })
+                        {
+                            process.Start();
+                            string result = await process.StandardOutput.ReadToEndAsync();
+                            string error = await process.StandardError.ReadToEndAsync();
+                            process.WaitForExit();
 
+                            if (process.ExitCode != 0)
+                            {
+                                throw new Exception($"Error running ModelLoader.py: {error}");
+                            }
 
+                            // Process the result as needed
+                            Log.Information(result);
 
-                    // Return the launch entries
-                    return launchEntriesFiltered;
+                            // Outputs the result to a dto object
+                            PredictionMakeDto predictionMakeDto = new()
+                            {
+                                PredictedStatus = result,
+                                CreatedAt = DateTime.Now,
+                                ParamsRocket = predQuery.RocketParams,
+                                ParamsWeather = predQuery.WeatherParams,
+
+                            };
+
+                            // Returns the outputted prediction
+                            return predictionMakeDto;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex.Message);
+                    }
                 }
+
+                // Return empty prediction if no model is provided
+                return new PredictionMakeDto()
+                {
+                    PredictedStatus = null
+                };
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex);
-                return new List<LaunchEntry>();
+
+                // Return empty prediction if an error occurs
+                return new PredictionMakeDto()
+                {
+                    PredictedStatus = null
+                };
             }
         }
 

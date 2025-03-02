@@ -75,15 +75,15 @@ namespace RLP_API.Controllers
         public async Task<IActionResult> CreatePrediction([FromQuery] PredictionMaker predictionMaker)
         {
             // Returns the generated prediction data after querying the ML model
-            List<LaunchPrediction> predictions = await _predictionQueryService.MakePredictionAsync(predictionMaker);
+            PredictionMakeDto prediction = await _predictionQueryService.MakePredictionAsync(predictionMaker);
 
             // Checks if any entries are returned
-            if (predictions.Count == 0)
+            if (prediction.PredictedStatus == null)
             {
                 return NoContent();
             }
 
-            return Ok(predictions);
+            return Ok(prediction);
         }
     }
 }
