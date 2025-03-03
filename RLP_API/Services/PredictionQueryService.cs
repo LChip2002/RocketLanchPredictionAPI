@@ -189,10 +189,14 @@ namespace RLP_API.Services
                             ModelType = modelType
                         };
 
+                        // Serialize the dto object
+                        string json = JsonConvert.SerializeObject(dto);
+                        string escapedJson = "\"" + json.Replace("\"", "\\\"") + "\"";
+
                         var startInfo = new ProcessStartInfo
                         {
                             FileName = "python3",
-                            Arguments = $"\"{Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ModelLoader.py")}\" {JsonConvert.SerializeObject(dto)}",
+                            Arguments = $"\"{Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ModelLoader.py")}\" {escapedJson}",
                             RedirectStandardOutput = true,
                             RedirectStandardError = true,
                             UseShellExecute = false,

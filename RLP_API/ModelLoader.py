@@ -4,6 +4,7 @@ import tensorflow as tf
 import sys
 import json
 
+# Load the model from the file system
 def load_model(model_type):
     model_path = os.path.join(os.path.dirname(__file__), '..', 'RLP_ML_Engine', 'RLP_ML_Models')
     
@@ -19,16 +20,23 @@ def load_model(model_type):
 
 if __name__ == "__main__":
 
-    # Get parsed parameter from RLP_API
-    arg = sys.argv[1]
-    print(arg)
+    try:
+        # Get parsed parameter from RLP_API
+        arg = sys.argv[1]
 
-    # Deserialize the json string to a dictionary
-    # params = json.loads(arg)
+        # Deserialize the json string to a dictionary
+        params = json.loads(arg)
 
-    # # Example usage:
-    # model = load_model(params["ModelType"])
-    # print(model)
+        # Example usage:
+        model = load_model(params["ModelType"])
+        print(model)
 
-    # # TODO - Generate Predictions of the model using the input data from RLP_API
-    # pred = model.predict([[1, 2, 3, 4]])
+        # TODO -Load the parameters as a dataframe from RLP_API
+
+
+
+        # TODO - Generate Predictions of the model using the input data from RLP_API
+        # pred = model.predict(X_test > 0.5).astype("int32")
+
+    except Exception as e:
+        print(f"Error: {e}")
