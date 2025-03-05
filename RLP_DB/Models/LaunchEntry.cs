@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace RLP_DB.Models;
 
@@ -31,6 +32,30 @@ public partial class LaunchEntry
 
     public string? Image { get; set; }
 
+    // Rocket and Pad Params
+
+    // --------------------------------
+    // Pad Params
+    // --------------------------------
+    public double? CelestialBodyDiameter { get; set; }
+    public double? CelestialBodyMass { get; set; }
+    public double? CelestialBodyGravity { get; set; }
+    public int? SuccessfulPadLaunches { get; set; }
+    public int? FailedPadLaunches { get; set; }
+
+    // --------------------------------
+    // Rocket Params that are retrieved from the Rocket Configuration
+    // --------------------------------
+    public double? ToThrust { get; set; }
+    public double? LaunchMass { get; set; }
+    public double? RocketLength { get; set; }
+    public double? RocketDiameter { get; set; }
+    public int? SuccessfulRocketLaunches { get; set; }
+    public int? FailedRocketLaunches { get; set; }
+
+    // --------------------------------
+    // Weather Params
+    // --------------------------------
     public double? Temperature { get; set; }
 
     public double? Rain { get; set; }

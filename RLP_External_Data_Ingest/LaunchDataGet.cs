@@ -2,6 +2,7 @@ using System.Net.Http.Headers;
 using System.Text.Json;
 using Newtonsoft.Json;
 using RLP_DB.Models;
+using RLP_External_Data_Ingest.Models;
 using RLP_DB.Contexts;
 using Serilog;
 using Microsoft.EntityFrameworkCore;
@@ -112,6 +113,14 @@ public class LaunchDataGet
 
                             try
                             {
+                                // Get the Rocket Configuration data from stored config url
+                                var confRes = await client.GetAsync(item.Rocket.Configuration.Url);
+
+                                string confJSON = await confRes.Content.ReadAsStringAsync();
+
+                                // Deserialise the JSON into a Rocket Configuration object
+                                RocketConfiguration? rocketConfig = JsonConvert.DeserializeObject<RocketConfiguration>(confJSON);
+
                                 // Combine weather and launch data into new object
                                 LaunchEntry launchEntry = new LaunchEntry()
                                 {
@@ -128,6 +137,8 @@ public class LaunchDataGet
                                     Rocket = item.Rocket.Configuration.Name,
                                     Mission = item.Mission.Name,
                                     Image = JsonConvert.SerializeObject(item.Image),
+
+                                    // Weather Params
                                     Temperature = weather.Temperature,
                                     Rain = weather.Rain,
                                     Showers = weather.Showers,
@@ -143,7 +154,23 @@ public class LaunchDataGet
                                     WindSpeed180m = weather.WindSpeed180m,
                                     Temperature80m = weather.Temperature80m,
                                     Temperature120m = weather.Temperature120m,
-                                    Temperature180m = weather.Temperature180m
+                                    Temperature180m = weather.Temperature180m,
+
+                                    // Launch Pad and Rocket Params
+                                    CelestialBodyDiameter = item.Pad.Location.CelestialBody.Diameter,
+                                    CelestialBodyMass = item.Pad.Location.CelestialBody.Mass,
+                                    CelestialBodyGravity = item.Pad.Location.CelestialBody.Gravity,
+                                    SuccessfulPadLaunches = item.Pad.Location.CelestialBody.SuccessfulLaunches,
+                                    FailedPadLaunches = item.Pad.Location.CelestialBody.FailedLaunches,
+
+                                    // Properties from Rocket Configuration Query
+                                    ToThrust = rocketConfig.ToThrust,
+                                    LaunchMass = rocketConfig.LaunchMass,
+                                    RocketLength = rocketConfig.Length,
+                                    RocketDiameter = rocketConfig.Diameter,
+                                    SuccessfulRocketLaunches = rocketConfig.SuccessfulLaunches,
+                                    FailedRocketLaunches = rocketConfig.FailedLaunches
+
                                 };
 
                                 // Attempt to add the launch entry to the database
