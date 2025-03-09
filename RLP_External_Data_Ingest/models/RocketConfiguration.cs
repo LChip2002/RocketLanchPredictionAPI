@@ -109,7 +109,7 @@ namespace RLP_External_Data_Ingest.Models
         public int? AttemptedLandingsPayload { get; set; }
         public string? InfoUrl { get; set; }
         public string? WikiUrl { get; set; }
-        public List<object>? SocialMediaLinks { get; set; }
+        public List<SocialMediaLink>? SocialMediaLinks { get; set; }
     }
 
     public class Program
@@ -129,19 +129,18 @@ namespace RLP_External_Data_Ingest.Models
         public Type? Type { get; set; }
     }
 
-    public class Agency
+    public class SocialMediaLink
     {
-        public string? ResponseMode { get; set; }
         public int? Id { get; set; }
+        public SocialMedia? SocialMedia { get; set; }
         public string? Url { get; set; }
-        public string? Name { get; set; }
-        public string? Abbrev { get; set; }
-        public Type? Type { get; set; }
     }
 
-    public class Type
+    public class SocialMedia
     {
         public int? Id { get; set; }
         public string? Name { get; set; }
+        public string? Url { get; set; }
+        public Image? Logo { get; set; }
     }
 }

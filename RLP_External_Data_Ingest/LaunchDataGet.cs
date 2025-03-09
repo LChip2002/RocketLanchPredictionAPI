@@ -29,7 +29,7 @@ public class LaunchDataGet
         // Load .env file from project root
         Env.Load("../.env");
 
-        // Read environment variables
+        // Reads Launch Library 2 API Key from environment variables
         string? apiKey = Environment.GetEnvironmentVariable("LL2_API_KEY");
 
         // Public API client for the Launch Library 2 API
@@ -40,7 +40,7 @@ public class LaunchDataGet
         client.DefaultRequestHeaders.Accept.Add(
             new MediaTypeWithQualityHeaderValue("application/json"));
 
-        // TODO - DO NOT PUSH and move this to environment variables
+        // Add the API key to the request headers
         client.DefaultRequestHeaders.Add("Authorization", $"Token {apiKey}");
 
         // Initialise the weather query class
@@ -115,40 +115,37 @@ public class LaunchDataGet
                         for (int i = 0; i < launch.Results.Count; i++)
                         {
 
-                            // Get relevant data from the launch object
-                            var item = launch.Results[i];
-
                             // Query weather api with launch data date and location
-                            AverageWeatherMetrics? weather = weatherQuery.GetWeather(item.WindowStart, item.WindowEnd, item.Pad.Latitude, item.Pad.Longitude);
+                            AverageWeatherMetrics? weather = weatherQuery.GetWeather(launch.Results[i].WindowStart, launch.Results[i].WindowEnd, launch.Results[i].Pad.Latitude, launch.Results[i].Pad.Longitude);
 
                             if (weather != null)
                             {
                                 try
                                 {
                                     // Get the Rocket Configuration data from stored config url
-                                    var confRes = await client.GetAsync(item.Rocket.Configuration.Url);
+                                    var confRes = await client.GetAsync(launch.Results[i].Rocket.Configuration.Url);
 
                                     string confJSON = await confRes.Content.ReadAsStringAsync();
 
                                     // Deserialise the JSON into a Rocket Configuration object
-                                    RocketConfiguration? rocketConfig = JsonConvert.DeserializeObject<RocketConfiguration>(confJSON);
+                                    RocketConfiguration? rocketConfig = System.Text.Json.JsonSerializer.Deserialize<RocketConfiguration>(confJSON, options);
 
                                     // Combine weather and launch data into new object
                                     LaunchEntry launchEntry = new LaunchEntry()
                                     {
-                                        Id = item.Id,
-                                        Name = item.Name,
-                                        Description = item.Mission?.Description,
-                                        Country = item.Pad.Location.Name,
-                                        LaunchLatitude = item.Pad.Latitude,
-                                        LaunchLongitude = item.Pad.Longitude,
-                                        LaunchStart = item.WindowStart,
-                                        LaunchEnd = item.WindowEnd,
-                                        Status = item.Status.Name,
-                                        StatusDescription = item.Status.Description,
-                                        Rocket = item.Rocket.Configuration.Name,
-                                        Mission = item.Mission.Name,
-                                        Image = JsonConvert.SerializeObject(item.Image),
+                                        Id = launch.Results[i].Id,
+                                        Name = launch.Results[i].Name,
+                                        Description = launch.Results[i].Mission?.Description,
+                                        Country = launch.Results[i].Pad.Location.Name,
+                                        LaunchLatitude = launch.Results[i].Pad.Latitude,
+                                        LaunchLongitude = launch.Results[i].Pad.Longitude,
+                                        LaunchStart = launch.Results[i].WindowStart,
+                                        LaunchEnd = launch.Results[i].WindowEnd,
+                                        Status = launch.Results[i].Status.Name,
+                                        StatusDescription = launch.Results[i].Status.Description,
+                                        Rocket = launch.Results[i].Rocket.Configuration.Name,
+                                        Mission = launch.Results[i].Mission.Name,
+                                        Image = JsonConvert.SerializeObject(launch.Results[i].Image),
 
                                         // Weather Params
                                         Temperature = weather.Temperature,
@@ -169,11 +166,11 @@ public class LaunchDataGet
                                         Temperature180m = weather.Temperature180m,
 
                                         // Launch Pad and Rocket Params
-                                        CelestialBodyDiameter = item.Pad.Location.CelestialBody.Diameter,
-                                        CelestialBodyMass = item.Pad.Location.CelestialBody.Mass,
-                                        CelestialBodyGravity = item.Pad.Location.CelestialBody.Gravity,
-                                        SuccessfulPadLaunches = item.Pad.Location.CelestialBody.SuccessfulLaunches,
-                                        FailedPadLaunches = item.Pad.Location.CelestialBody.FailedLaunches,
+                                        CelestialBodyDiameter = launch.Results[i].Pad.Location.CelestialBody.Diameter,
+                                        CelestialBodyMass = launch.Results[i].Pad.Location.CelestialBody.Mass,
+                                        CelestialBodyGravity = launch.Results[i].Pad.Location.CelestialBody.Gravity,
+                                        SuccessfulPadLaunches = launch.Results[i].Pad.Location.CelestialBody.SuccessfulLaunches,
+                                        FailedPadLaunches = launch.Results[i].Pad.Location.CelestialBody.FailedLaunches,
 
                                         // Properties from Rocket Configuration Query
                                         ToThrust = rocketConfig.ToThrust,

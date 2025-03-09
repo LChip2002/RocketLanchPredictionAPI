@@ -24,10 +24,6 @@ public class Worker : BackgroundService
             {
                 _isInUse = true;
 
-                // TODO - Max out 15 requests per hour
-
-                // TODO - Checks if the data has been updated recently based on appsettings
-
                 // Calls the LaunchDataGet class to get the launch data and ingest to DB
                 LaunchDataGet dataGet = new();
                 await dataGet.LaunchAPIRetrieval();
