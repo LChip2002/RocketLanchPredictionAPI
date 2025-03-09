@@ -32,17 +32,6 @@ public partial class LaunchEntry
 
     public string? Image { get; set; }
 
-    // Rocket and Pad Params
-
-    // --------------------------------
-    // Pad Params
-    // --------------------------------
-    public double? CelestialBodyDiameter { get; set; }
-    public double? CelestialBodyMass { get; set; }
-    public double? CelestialBodyGravity { get; set; }
-    public int? SuccessfulPadLaunches { get; set; }
-    public int? FailedPadLaunches { get; set; }
-
     // --------------------------------
     // Rocket Params that are retrieved from the Rocket Configuration
     // --------------------------------

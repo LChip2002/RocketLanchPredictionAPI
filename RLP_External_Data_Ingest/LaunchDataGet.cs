@@ -165,13 +165,6 @@ public class LaunchDataGet
                                         Temperature120m = weather.Temperature120m,
                                         Temperature180m = weather.Temperature180m,
 
-                                        // Launch Pad and Rocket Params
-                                        CelestialBodyDiameter = launch.Results[i].Pad.Location.CelestialBody.Diameter,
-                                        CelestialBodyMass = launch.Results[i].Pad.Location.CelestialBody.Mass,
-                                        CelestialBodyGravity = launch.Results[i].Pad.Location.CelestialBody.Gravity,
-                                        SuccessfulPadLaunches = launch.Results[i].Pad.Location.CelestialBody.SuccessfulLaunches,
-                                        FailedPadLaunches = launch.Results[i].Pad.Location.CelestialBody.FailedLaunches,
-
                                         // Properties from Rocket Configuration Query
                                         ToThrust = rocketConfig.ToThrust,
                                         LaunchMass = rocketConfig.LaunchMass,
@@ -179,7 +172,6 @@ public class LaunchDataGet
                                         RocketDiameter = rocketConfig.Diameter,
                                         SuccessfulRocketLaunches = rocketConfig.SuccessfulLaunches,
                                         FailedRocketLaunches = rocketConfig.FailedLaunches
-
                                     };
 
                                     // Attempt to add the launch entry to the database
