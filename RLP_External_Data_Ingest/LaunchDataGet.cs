@@ -6,6 +6,7 @@ using RLP_External_Data_Ingest.Models;
 using RLP_DB.Contexts;
 using Serilog;
 using Microsoft.EntityFrameworkCore;
+using DotNetEnv;
 
 namespace RLP_External_Data_Ingest;
 
@@ -25,6 +26,12 @@ public class LaunchDataGet
     // Constructor for the class where we initialise API connections
     public LaunchDataGet()
     {
+        // Load .env file from project root
+        Env.Load("../.env");
+
+        // Read environment variables
+        string? apiKey = Environment.GetEnvironmentVariable("LL2_API_KEY");
+
         // Public API client for the Launch Library 2 API
         client = new HttpClient();
         client.BaseAddress = new Uri("https://ll.thespacedevs.com/");
@@ -32,6 +39,9 @@ public class LaunchDataGet
         client.DefaultRequestHeaders.Clear();
         client.DefaultRequestHeaders.Accept.Add(
             new MediaTypeWithQualityHeaderValue("application/json"));
+
+        // TODO - DO NOT PUSH and move this to environment variables
+        client.DefaultRequestHeaders.Add("Authorization", $"Token {apiKey}");
 
         // Initialise the weather query class
         weatherQuery = new WeatherQuery();
@@ -111,89 +121,93 @@ public class LaunchDataGet
                             // Query weather api with launch data date and location
                             AverageWeatherMetrics? weather = weatherQuery.GetWeather(item.WindowStart, item.WindowEnd, item.Pad.Latitude, item.Pad.Longitude);
 
-                            try
+                            if (weather != null)
                             {
-                                // Get the Rocket Configuration data from stored config url
-                                var confRes = await client.GetAsync(item.Rocket.Configuration.Url);
-
-                                string confJSON = await confRes.Content.ReadAsStringAsync();
-
-                                // Deserialise the JSON into a Rocket Configuration object
-                                RocketConfiguration? rocketConfig = JsonConvert.DeserializeObject<RocketConfiguration>(confJSON);
-
-                                // Combine weather and launch data into new object
-                                LaunchEntry launchEntry = new LaunchEntry()
-                                {
-                                    Id = item.Id,
-                                    Name = item.Name,
-                                    Description = item.Mission?.Description,
-                                    Country = item.Pad.Location.Name,
-                                    LaunchLatitude = item.Pad.Latitude,
-                                    LaunchLongitude = item.Pad.Longitude,
-                                    LaunchStart = item.WindowStart,
-                                    LaunchEnd = item.WindowEnd,
-                                    Status = item.Status.Name,
-                                    StatusDescription = item.Status.Description,
-                                    Rocket = item.Rocket.Configuration.Name,
-                                    Mission = item.Mission.Name,
-                                    Image = JsonConvert.SerializeObject(item.Image),
-
-                                    // Weather Params
-                                    Temperature = weather.Temperature,
-                                    Rain = weather.Rain,
-                                    Showers = weather.Showers,
-                                    Snowfall = weather.Snowfall,
-                                    CloudCover = weather.CloudCover,
-                                    CloudCoverLow = weather.CloudCoverLow,
-                                    CloudCoverMid = weather.CloudCoverMid,
-                                    CloudCoverHigh = weather.CloudCoverHigh,
-                                    Visibility = weather.Visibility,
-                                    WindSpeed10m = weather.WindSpeed10m,
-                                    WindSpeed80m = weather.WindSpeed80m,
-                                    WindSpeed120m = weather.WindSpeed120m,
-                                    WindSpeed180m = weather.WindSpeed180m,
-                                    Temperature80m = weather.Temperature80m,
-                                    Temperature120m = weather.Temperature120m,
-                                    Temperature180m = weather.Temperature180m,
-
-                                    // Launch Pad and Rocket Params
-                                    CelestialBodyDiameter = item.Pad.Location.CelestialBody.Diameter,
-                                    CelestialBodyMass = item.Pad.Location.CelestialBody.Mass,
-                                    CelestialBodyGravity = item.Pad.Location.CelestialBody.Gravity,
-                                    SuccessfulPadLaunches = item.Pad.Location.CelestialBody.SuccessfulLaunches,
-                                    FailedPadLaunches = item.Pad.Location.CelestialBody.FailedLaunches,
-
-                                    // Properties from Rocket Configuration Query
-                                    ToThrust = rocketConfig.ToThrust,
-                                    LaunchMass = rocketConfig.LaunchMass,
-                                    RocketLength = rocketConfig.Length,
-                                    RocketDiameter = rocketConfig.Diameter,
-                                    SuccessfulRocketLaunches = rocketConfig.SuccessfulLaunches,
-                                    FailedRocketLaunches = rocketConfig.FailedLaunches
-
-                                };
-
-                                // Attempt to add the launch entry to the database
                                 try
                                 {
-                                    Console.WriteLine("Adding new launch entry to database");
+                                    // Get the Rocket Configuration data from stored config url
+                                    var confRes = await client.GetAsync(item.Rocket.Configuration.Url);
 
-                                    // Attempts to add the launch entry to the database
-                                    context.Set<LaunchEntry>().Add(launchEntry);
-                                    await context.SaveChangesAsync();
+                                    string confJSON = await confRes.Content.ReadAsStringAsync();
+
+                                    // Deserialise the JSON into a Rocket Configuration object
+                                    RocketConfiguration? rocketConfig = JsonConvert.DeserializeObject<RocketConfiguration>(confJSON);
+
+                                    // Combine weather and launch data into new object
+                                    LaunchEntry launchEntry = new LaunchEntry()
+                                    {
+                                        Id = item.Id,
+                                        Name = item.Name,
+                                        Description = item.Mission?.Description,
+                                        Country = item.Pad.Location.Name,
+                                        LaunchLatitude = item.Pad.Latitude,
+                                        LaunchLongitude = item.Pad.Longitude,
+                                        LaunchStart = item.WindowStart,
+                                        LaunchEnd = item.WindowEnd,
+                                        Status = item.Status.Name,
+                                        StatusDescription = item.Status.Description,
+                                        Rocket = item.Rocket.Configuration.Name,
+                                        Mission = item.Mission.Name,
+                                        Image = JsonConvert.SerializeObject(item.Image),
+
+                                        // Weather Params
+                                        Temperature = weather.Temperature,
+                                        Rain = weather.Rain,
+                                        Showers = weather.Showers,
+                                        Snowfall = weather.Snowfall,
+                                        CloudCover = weather.CloudCover,
+                                        CloudCoverLow = weather.CloudCoverLow,
+                                        CloudCoverMid = weather.CloudCoverMid,
+                                        CloudCoverHigh = weather.CloudCoverHigh,
+                                        Visibility = weather.Visibility,
+                                        WindSpeed10m = weather.WindSpeed10m,
+                                        WindSpeed80m = weather.WindSpeed80m,
+                                        WindSpeed120m = weather.WindSpeed120m,
+                                        WindSpeed180m = weather.WindSpeed180m,
+                                        Temperature80m = weather.Temperature80m,
+                                        Temperature120m = weather.Temperature120m,
+                                        Temperature180m = weather.Temperature180m,
+
+                                        // Launch Pad and Rocket Params
+                                        CelestialBodyDiameter = item.Pad.Location.CelestialBody.Diameter,
+                                        CelestialBodyMass = item.Pad.Location.CelestialBody.Mass,
+                                        CelestialBodyGravity = item.Pad.Location.CelestialBody.Gravity,
+                                        SuccessfulPadLaunches = item.Pad.Location.CelestialBody.SuccessfulLaunches,
+                                        FailedPadLaunches = item.Pad.Location.CelestialBody.FailedLaunches,
+
+                                        // Properties from Rocket Configuration Query
+                                        ToThrust = rocketConfig.ToThrust,
+                                        LaunchMass = rocketConfig.LaunchMass,
+                                        RocketLength = rocketConfig.Length,
+                                        RocketDiameter = rocketConfig.Diameter,
+                                        SuccessfulRocketLaunches = rocketConfig.SuccessfulLaunches,
+                                        FailedRocketLaunches = rocketConfig.FailedLaunches
+
+                                    };
+
+                                    // Attempt to add the launch entry to the database
+                                    try
+                                    {
+                                        Console.WriteLine("Adding new launch entry to database");
+
+                                        // Attempts to add the launch entry to the database
+                                        context.Set<LaunchEntry>().Add(launchEntry);
+                                        await context.SaveChangesAsync();
+                                    }
+                                    catch (DbUpdateException ex)
+                                    {
+                                        // TODO - Edit Logging to be more specific
+                                        Log.Error(ex.Message, "Error adding launch entry to database");
+                                        throw;
+                                    }
+
                                 }
-                                catch (DbUpdateException ex)
+                                catch (Exception e)
                                 {
-                                    // TODO - Edit Logging to be more specific
-                                    Log.Error(ex.Message, "Error adding launch entry to database");
-                                    throw;
+                                    Log.Error(e.Message, "Error while creating launch entry");
                                 }
+                            }
 
-                            }
-                            catch (Exception e)
-                            {
-                                Log.Error(e.Message, "Error while creating launch entry");
-                            }
                         }
                     }
 
