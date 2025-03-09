@@ -203,7 +203,9 @@ if __name__ == "__main__":
     X = np.array([launch_df['Temperature'], launch_df['Rain'], launch_df['Showers'], launch_df['Snowfall'], launch_df['CloudCover']
                  , launch_df['CloudCoverLow'], launch_df['CloudCoverMid'], launch_df['CloudCoverHigh'], launch_df['Visibility']
                  , launch_df['WindSpeed10m'], launch_df['WindSpeed80m'], launch_df['WindSpeed120m'], launch_df['WindSpeed180m']
-                 , launch_df['Temperature80m'], launch_df['Temperature120m'], launch_df['Temperature180m']]).T  # Features
+                 , launch_df['Temperature80m'], launch_df['Temperature120m'], launch_df['Temperature180m']
+                 , launch_df['ToThrust'], launch_df['LaunchMass'], launch_df['RocketLength'], launch_df['RocketDiameter']
+                 , launch_df['SuccessfulRocketLaunches'], launch_df['FailedRocketLaunches']]).T  # Features
     
     y = launch_df['Status']  # Label for the status of the launch
 
@@ -306,7 +308,12 @@ if __name__ == "__main__":
                 "Temperature180m": row[15]
             }
             params_rocket = {
-                # Add rocket parameters here if available
+                "ToThrust": row[16],
+                "LaunchMass": row[17],
+                "RocketLength": row[18],
+                "RocketDiameter": row[19],
+                "SuccessfulRocketLaunches": row[20],
+                "FailedRocketLaunches": row[21]
             }
 
             # Create a new PredictionResults object
