@@ -1,7 +1,6 @@
 
 namespace RLP_API.Models
 {
-    // TODO - Edit this to match the launch_predictions entity in the DB
     public class PredictionQuery
     {
         public Guid? Id { get; set; }

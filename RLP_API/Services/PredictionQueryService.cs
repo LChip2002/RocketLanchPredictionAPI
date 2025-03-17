@@ -1,27 +1,17 @@
 using RLP_API.Models;
 using RLP_DB.Models;
-using RLP_DB;
 using RLP_DB.Contexts;
-using RLP_API.Enums;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
-using System.Text.Json;
-using Tensorflow;
-using Tensorflow.Keras.Models;
-using Microsoft.ML;
 using Serilog;
 using System.Diagnostics;
-using OneOf.Types;
 
 namespace RLP_API.Services
 {
     public class PredictionQueryService
     {
         // Constructor
-        public PredictionQueryService()
-        {
-            // Initialization code here
-        }
+        public PredictionQueryService() { }
 
         /// <summary>
         /// Get existing launch prediction data from the database
@@ -148,8 +138,42 @@ namespace RLP_API.Services
                     // Filter for rocket parameters
                     if (predQuery.RocketParams != null)
                     {
-                        // TODO - Add rocket parameters
-                        Console.WriteLine("Rocket parameters not yet implemented");
+                        if (predQuery.RocketParams.ToThrust != null)
+                        {
+                            // Filter the query based on the launchQuery object
+                            predictionsFiltered = predictions.AsEnumerable().Where(launch => JsonConvert.DeserializeObject<RocketParameters>(launch.ParamsRocket).ToThrust == predQuery.RocketParams.ToThrust).ToList();
+                        }
+                        if (predQuery.RocketParams.LaunchMass != null)
+                        {
+                            // Filter the query based on the launchQuery object
+                            predictionsFiltered = predictions.AsEnumerable().Where(launch => JsonConvert.DeserializeObject<RocketParameters>(launch.ParamsRocket).LaunchMass == predQuery.RocketParams.LaunchMass).ToList();
+                        }
+                        if (predQuery.RocketParams.RocketLength != null)
+                        {
+                            // Filter the query based on the launchQuery object
+                            predictionsFiltered = predictions.AsEnumerable().Where(launch => JsonConvert.DeserializeObject<RocketParameters>(launch.ParamsRocket).RocketLength == predQuery.RocketParams.RocketLength).ToList();
+                        }
+                        if (predQuery.RocketParams.RocketDiameter != null)
+                        {
+                            // Filter the query based on the launchQuery object
+                            predictionsFiltered = predictions.AsEnumerable().Where(launch => JsonConvert.DeserializeObject<RocketParameters>(launch.ParamsRocket).RocketDiameter == predQuery.RocketParams.RocketDiameter).ToList();
+                        }
+                        if (predQuery.RocketParams.SuccessfulRocketLaunches != null)
+                        {
+                            // Filter the query based on the launchQuery object
+                            predictionsFiltered = predictions.AsEnumerable().Where(launch => JsonConvert.DeserializeObject<RocketParameters>(launch.ParamsRocket).SuccessfulRocketLaunches == predQuery.RocketParams.SuccessfulRocketLaunches).ToList();
+                        }
+                        if (predQuery.RocketParams.FailedRocketLaunches != null)
+                        {
+                            // Filter the query based on the launchQuery object
+                            predictionsFiltered = predictions.AsEnumerable().Where(launch => JsonConvert.DeserializeObject<RocketParameters>(launch.ParamsRocket).FailedRocketLaunches == predQuery.RocketParams.FailedRocketLaunches).ToList();
+                        }
+
+                        // Get the results using the returned result IDs
+                        foreach (var prediction in predictionsFiltered)
+                        {
+                            prediction.Result = await predictionResults.Where(result => result.ResultId == prediction.ResultId).FirstOrDefaultAsync();
+                        }
                     }
 
                     // Return the predictions
