@@ -1,12 +1,14 @@
+using System.ComponentModel;
+
 namespace RLP_API.Models
 {
     public enum ModelType
     {
-        NaiveBayes = 0,
-        DecisionTree = 1,
-        NeuralNetwork = 2,
-        KNeighbours = 3,
-        RandomForest = 4,
+        NaiveBayes, // Naive Bayes = 0
+        DecisionTree, // Decision Tree = 1
+        NeuralNetwork, // Custom Neural Network = 2
+        KNeighbours, // K-Nearest Neighbors = 3
+        RandomForest, // Random Forest = 4
     }
 
     // Checks the user input and returns the status in the form of what to expect in the DB
@@ -23,7 +25,7 @@ namespace RLP_API.Models
                 case ModelType.NeuralNetwork:
                     return "Custom Neural Network";
                 case ModelType.KNeighbours:
-                    return "K-Nearest Neighbours";
+                    return "K-Nearest Neighbors";
                 case ModelType.RandomForest:
                     return "Random Forest";
                 default:

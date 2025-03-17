@@ -2,8 +2,6 @@ using Microsoft.AspNetCore.Mvc;
 using RLP_API.Models;
 using RLP_API.Services;
 using RLP_DB.Models;
-using Newtonsoft.Json;
-using System.Threading.Tasks;
 
 namespace RLP_API.Controllers
 {
@@ -72,7 +70,7 @@ namespace RLP_API.Controllers
         /// <returns></returns>
         [HttpPost]
         [Route("CreatePrediction")]
-        public async Task<IActionResult> CreatePrediction([FromQuery] PredictionMaker predictionMaker)
+        public async Task<IActionResult> CreatePrediction(PredictionMaker predictionMaker)
         {
             // Returns the generated prediction data after querying the ML model
             PredictionMakeDto prediction = await _predictionQueryService.MakePredictionAsync(predictionMaker);

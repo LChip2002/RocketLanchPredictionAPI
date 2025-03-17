@@ -37,7 +37,6 @@ class RocketParams:
 # Load the model from the file system
 def load_model(model_type):
     # Load the model from the file system
-    # model_path = os.path.join(os.path.dirname(__file__), '..', 'RLP_ML_Engine', 'RLP_ML_Models')
     model_path = os.path.abspath(os.path.join(os.getcwd(), '..', 'RLP_ML_Engine', 'RLP_ML_Models'))
     
     if not os.path.exists(model_path):
