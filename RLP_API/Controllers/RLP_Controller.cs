@@ -68,7 +68,7 @@ namespace RLP_API.Controllers
         /// <summary>
         /// CreatePrediction endpoint
         /// </summary>
-        /// <param name="predictionMaker"></param>
+        /// <param name="predictionMaker">Params default to zero if nothing entered</param>
         /// <returns></returns>
         [HttpPost]
         [Route("CreatePrediction")]

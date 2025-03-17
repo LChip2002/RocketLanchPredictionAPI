@@ -113,8 +113,9 @@ if __name__ == "__main__":
         # Replace any NaN values with 0
         input_data.fillna(0, inplace=True)
 
-        # TODO - Generate Predictions of the model using the input data from RLP_API
+        # Generate Predictions of the model using the input data from RLP_API
         pred = model.predict(input_data).astype("int32")
+        print(pred)
         output = {}
 
         # TODO - Add appropriate attributes to the response object
