@@ -4,6 +4,7 @@ import tensorflow as tf
 import sys
 import json
 import pandas as pd
+from sklearn.preprocessing import LabelEncoder
 
 class WeatherParams:
     def __init__(self, params):
@@ -115,10 +116,15 @@ if __name__ == "__main__":
 
         # Generate Predictions of the model using the input data from RLP_API
         pred = model.predict(input_data).astype("int32")
-        print(pred)
-        output = {}
 
-        # TODO - Add appropriate attributes to the response object
+        # Interpret the prediction
+        le = LabelEncoder()
+        le.fit(["Launch Failure", "Launch Success"])
+        output = le.inverse_transform(pred)
+
+        # Remove the brackets from the output
+        output = output[0]
+
         # Create response object
         response = {
             "Prediction": output,

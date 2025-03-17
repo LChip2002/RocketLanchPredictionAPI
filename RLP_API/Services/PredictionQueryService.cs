@@ -11,6 +11,7 @@ using Tensorflow.Keras.Models;
 using Microsoft.ML;
 using Serilog;
 using System.Diagnostics;
+using OneOf.Types;
 
 namespace RLP_API.Services
 {
@@ -218,10 +219,12 @@ namespace RLP_API.Services
                             // Process the result as needed
                             Log.Information(result);
 
+                            ResultDto? resultDto = JsonConvert.DeserializeObject<ResultDto>(result);
+
                             // Outputs the result to a dto object
                             PredictionMakeDto predictionMakeDto = new()
                             {
-                                PredictedStatus = result,
+                                PredictedStatus = resultDto.Prediction,
                                 CreatedAt = DateTime.Now,
                                 ParamsRocket = predQuery.RocketParams,
                                 ParamsWeather = predQuery.WeatherParams,
