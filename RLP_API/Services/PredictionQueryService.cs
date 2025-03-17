@@ -252,8 +252,7 @@ namespace RLP_API.Services
                                 CreatedAt = DateTime.Now,
                                 ParamsRocket = predQuery.RocketParams,
                                 ParamsWeather = predQuery.WeatherParams,
-                                ModelType = predQuery.ModelType
-
+                                ModelType = modelType
                             };
 
                             // Returns the outputted prediction
