@@ -140,9 +140,6 @@ if __name__ == "__main__":
         # Convert the response object to a JSON string
         response_json = json.dumps(response)
 
-        # Clear the console of any print statements
-        sys.stdout.flush()
-
         # Add the prediction object to the response and outputs to the console or API
         print(response_json)
 

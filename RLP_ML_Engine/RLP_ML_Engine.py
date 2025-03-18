@@ -1,4 +1,3 @@
-
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score, log_loss, precision_score, recall_score, f1_score
 from sklearn.preprocessing import LabelEncoder, StandardScaler
@@ -336,10 +335,6 @@ if __name__ == "__main__":
                 results=result
             )
             launch_predictions.append(launch_prediction)
-    
-    # TODO - Save the model with the best accuracy that can be used for future predictions by RLP_API
-    # model.save("success_rate_model.h5")
-    # print("Model saved successfully")
 
     # Ingest the results of each model into the Postgres DB
     store_results(launch_predictions)
