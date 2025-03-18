@@ -124,6 +124,12 @@ if __name__ == "__main__":
         # Remove the brackets from the output
         output = output[0]
 
+        # Find the start of the JSON object
+        json_start = output.find('{')
+
+        # Extract only the JSON part
+        response_json = output[json_start:].strip()
+
         # Create response object
         response = {
             "Prediction": output,
@@ -133,6 +139,9 @@ if __name__ == "__main__":
 
         # Convert the response object to a JSON string
         response_json = json.dumps(response)
+
+        # Clear the console of any print statements
+        sys.stdout.flush()
 
         # Add the prediction object to the response and outputs to the console or API
         print(response_json)

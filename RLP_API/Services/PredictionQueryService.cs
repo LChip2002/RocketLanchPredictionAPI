@@ -243,6 +243,11 @@ namespace RLP_API.Services
                             // Process the result as needed
                             Log.Information(result);
 
+                            // Cleanup the returned JSON
+                            var split = result.Split("{");
+                            result = "{" + split[1];
+
+                            // Deserialize the result
                             ResultDto? resultDto = JsonConvert.DeserializeObject<ResultDto>(result);
 
                             // Outputs the result to a dto object
