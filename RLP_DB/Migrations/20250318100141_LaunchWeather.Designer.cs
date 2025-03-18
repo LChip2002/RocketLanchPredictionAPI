@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using RLP_DB.Contexts;
@@ -11,9 +12,11 @@ using RLP_DB.Contexts;
 namespace RLP_DB.Migrations
 {
     [DbContext(typeof(PostgresV1Context))]
-    partial class PostgresV1ContextModelSnapshot : ModelSnapshot
+    [Migration("20250318100141_LaunchWeather")]
+    partial class LaunchWeather
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -100,6 +103,15 @@ namespace RLP_DB.Migrations
                         .HasColumnType("integer");
 
                     b.Property<double?>("Temperature")
+                        .HasColumnType("double precision");
+
+                    b.Property<double?>("Temperature120m")
+                        .HasColumnType("double precision");
+
+                    b.Property<double?>("Temperature180m")
+                        .HasColumnType("double precision");
+
+                    b.Property<double?>("Temperature80m")
                         .HasColumnType("double precision");
 
                     b.Property<double?>("ToThrust")

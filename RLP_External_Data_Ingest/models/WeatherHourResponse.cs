@@ -11,8 +11,8 @@ public class WeatherHourResponse
     [JsonPropertyName("rain")]
     public List<double?> Rain { get; set; }
 
-    [JsonPropertyName("showers")]
-    public List<double?> Showers { get; set; }
+    [JsonPropertyName("precipitation")]
+    public List<double?> Precipitation { get; set; }
 
     [JsonPropertyName("snowfall")]
     public List<double?> Snowfall { get; set; }
@@ -43,14 +43,5 @@ public class WeatherHourResponse
 
     [JsonPropertyName("wind_speed_180m")]
     public List<double?> WindSpeed180m { get; set; }
-
-    [JsonPropertyName("temperature_80m")]
-    public List<double?> Temperature80m { get; set; }
-
-    [JsonPropertyName("temperature_120m")]
-    public List<double?> Temperature120m { get; set; }
-
-    [JsonPropertyName("temperature_180m")]
-    public List<double?> Temperature180m { get; set; }
 
 }

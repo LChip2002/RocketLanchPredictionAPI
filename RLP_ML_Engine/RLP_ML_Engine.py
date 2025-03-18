@@ -199,10 +199,9 @@ if __name__ == "__main__":
     launch_df['Status'] = launch_df['Status'].replace('Launch was a Partial Failure', 'Launch Failure')
 
     # Split the data into features and labels
-    X = np.array([launch_df['Temperature'], launch_df['Rain'], launch_df['Showers'], launch_df['Snowfall'], launch_df['CloudCover']
+    X = np.array([launch_df['Temperature'], launch_df['Rain'], launch_df['Precipitation'], launch_df['Snowfall'], launch_df['CloudCover']
                  , launch_df['CloudCoverLow'], launch_df['CloudCoverMid'], launch_df['CloudCoverHigh'], launch_df['Visibility']
                  , launch_df['WindSpeed10m'], launch_df['WindSpeed80m'], launch_df['WindSpeed120m'], launch_df['WindSpeed180m']
-                 , launch_df['Temperature80m'], launch_df['Temperature120m'], launch_df['Temperature180m']
                  , launch_df['ToThrust'], launch_df['LaunchMass'], launch_df['RocketLength'], launch_df['RocketDiameter']
                  , launch_df['SuccessfulRocketLaunches'], launch_df['FailedRocketLaunches']]).T  # Features
     
@@ -291,7 +290,7 @@ if __name__ == "__main__":
             params_weather = {
                 "Temperature": row[0],
                 "Rain": row[1],
-                "Showers": row[2],
+                "Precipitation": row[2],
                 "Snowfall": row[3],
                 "CloudCover": row[4],
                 "CloudCoverLow": row[5],
@@ -302,17 +301,14 @@ if __name__ == "__main__":
                 "WindSpeed80m": row[10],
                 "WindSpeed120m": row[11],
                 "WindSpeed180m": row[12],
-                "Temperature80m": row[13],
-                "Temperature120m": row[14],
-                "Temperature180m": row[15]
             }
             params_rocket = {
-                "ToThrust": row[16],
-                "LaunchMass": row[17],
-                "RocketLength": row[18],
-                "RocketDiameter": row[19],
-                "SuccessfulRocketLaunches": row[20],
-                "FailedRocketLaunches": row[21]
+                "ToThrust": row[13],
+                "LaunchMass": row[14],
+                "RocketLength": row[15],
+                "RocketDiameter": row[16],
+                "SuccessfulRocketLaunches": row[17],
+                "FailedRocketLaunches": row[18]
             }
 
             # Create a new PredictionResults object

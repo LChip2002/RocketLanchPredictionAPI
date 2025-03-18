@@ -49,7 +49,7 @@ public partial class LaunchEntry
 
     public double? Rain { get; set; }
 
-    public double? Showers { get; set; }
+    public double? Precipitation { get; set; }
 
     public double? Snowfall { get; set; }
 
@@ -70,10 +70,4 @@ public partial class LaunchEntry
     public double? WindSpeed120m { get; set; }
 
     public double? WindSpeed180m { get; set; }
-
-    public double? Temperature80m { get; set; }
-
-    public double? Temperature120m { get; set; }
-
-    public double? Temperature180m { get; set; }
 }

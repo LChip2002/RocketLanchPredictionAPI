@@ -51,10 +51,10 @@ namespace RLP_API.Services
                             // Filter the query based on the launchQuery object
                             predictionsFiltered = predictions.AsEnumerable().Where(launch => JsonConvert.DeserializeObject<WeatherParameters>(launch.ParamsWeather).Rain == predQuery.WeatherParams.Rain).ToList();
                         }
-                        if (predQuery.WeatherParams.Showers != null)
+                        if (predQuery.WeatherParams.Precipitation != null)
                         {
                             // Filter the query based on the launchQuery object
-                            predictionsFiltered = predictions.AsEnumerable().Where(launch => JsonConvert.DeserializeObject<WeatherParameters>(launch.ParamsWeather).Showers == predQuery.WeatherParams.Showers).ToList();
+                            predictionsFiltered = predictions.AsEnumerable().Where(launch => JsonConvert.DeserializeObject<WeatherParameters>(launch.ParamsWeather).Precipitation == predQuery.WeatherParams.Precipitation).ToList();
                         }
                         if (predQuery.WeatherParams.Snowfall != null)
                         {
@@ -110,21 +110,6 @@ namespace RLP_API.Services
                         {
                             // Filter the query based on the launchQuery object
                             predictionsFiltered = predictions.AsEnumerable().Where(launch => JsonConvert.DeserializeObject<WeatherParameters>(launch.ParamsWeather).WindSpeed180m == predQuery.WeatherParams.WindSpeed180m).ToList();
-                        }
-                        if (predQuery.WeatherParams.Temperature80m != null)
-                        {
-                            // Filter the query based on the launchQuery object
-                            predictionsFiltered = predictions.AsEnumerable().Where(launch => JsonConvert.DeserializeObject<WeatherParameters>(launch.ParamsWeather).Temperature80m == predQuery.WeatherParams.Temperature80m).ToList();
-                        }
-                        if (predQuery.WeatherParams.Temperature120m != null)
-                        {
-                            // Filter the query based on the launchQuery object
-                            predictionsFiltered = predictions.AsEnumerable().Where(launch => JsonConvert.DeserializeObject<WeatherParameters>(launch.ParamsWeather).Temperature120m == predQuery.WeatherParams.Temperature120m).ToList();
-                        }
-                        if (predQuery.WeatherParams.Temperature180m != null)
-                        {
-                            // Filter the query based on the launchQuery object
-                            predictionsFiltered = predictions.AsEnumerable().Where(launch => JsonConvert.DeserializeObject<WeatherParameters>(launch.ParamsWeather).Temperature180m == predQuery.WeatherParams.Temperature180m).ToList();
                         }
 
                         // Get the results using the returned result IDs

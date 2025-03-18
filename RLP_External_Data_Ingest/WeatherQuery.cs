@@ -17,8 +17,8 @@ namespace RLP_External_Data_Ingest
             string end = DateTime.Parse(windowEnd).ToString("yyyy-MM-dd");
 
             // Create query for API
-            // TODO - Investigate and fix bad request error, issue is with API not always containing weather information for the requested time
-            string queryString = $"https://historical-forecast-api.open-meteo.com/v1/forecast?latitude={latitude}&longitude={longitude}&start_date={start}&end_date={end}&hourly=temperature_2m,rain,showers,snowfall,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,visibility,wind_speed_10m,wind_speed_80m,wind_speed_120m,wind_speed_180m,temperature_80m,temperature_120m,temperature_180m";
+            //string queryString = $"https://historical-forecast-api.open-meteo.com/v1/forecast?latitude={latitude}&longitude={longitude}&start_date={start}&end_date={end}&hourly=temperature_2m,rain,showers,snowfall,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,visibility,wind_speed_10m,wind_speed_80m,wind_speed_120m,wind_speed_180m,temperature_80m,temperature_120m,temperature_180m";
+            string queryString = $"https://archive-api.open-meteo.com/v1/archive?latitude={latitude}&longitude={longitude}&start_date={start}&end_date={end}&hourly=temperature_2m,rain,precipitation,snowfall,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,visibility,wind_speed_10m,wind_speed_80m,wind_speed_120m,wind_speed_180m";
 
             // Call API with query from Launch data
             using (HttpClient client = new HttpClient())
@@ -60,7 +60,7 @@ namespace RLP_External_Data_Ingest
                         {
                             Temperature = timeIndexes.Select(i => hourlyWeather.Temperature2m[i]).DefaultIfEmpty(0).Average(),
                             Rain = timeIndexes.Select(i => hourlyWeather.Rain[i]).DefaultIfEmpty(0).Average(),
-                            Showers = timeIndexes.Select(i => hourlyWeather.Showers[i]).DefaultIfEmpty(0).Average(),
+                            Precipitation = timeIndexes.Select(i => hourlyWeather.Precipitation[i]).DefaultIfEmpty(0).Average(),
                             Snowfall = timeIndexes.Select(i => hourlyWeather.Snowfall[i]).DefaultIfEmpty(0).Average(),
                             CloudCover = timeIndexes.Select(i => hourlyWeather.CloudCover[i]).DefaultIfEmpty(0).Average(),
                             CloudCoverLow = timeIndexes.Select(i => hourlyWeather.CloudCoverLow[i]).DefaultIfEmpty(0).Average(),
@@ -71,9 +71,6 @@ namespace RLP_External_Data_Ingest
                             WindSpeed80m = timeIndexes.Select(i => hourlyWeather.WindSpeed80m[i]).DefaultIfEmpty(0).Average(),
                             WindSpeed120m = timeIndexes.Select(i => hourlyWeather.WindSpeed120m[i]).DefaultIfEmpty(0).Average(),
                             WindSpeed180m = timeIndexes.Select(i => hourlyWeather.WindSpeed180m[i]).DefaultIfEmpty(0).Average(),
-                            Temperature80m = timeIndexes.Select(i => hourlyWeather.Temperature80m[i]).DefaultIfEmpty(0).Average(),
-                            Temperature120m = timeIndexes.Select(i => hourlyWeather.Temperature120m[i]).DefaultIfEmpty(0).Average(),
-                            Temperature180m = timeIndexes.Select(i => hourlyWeather.Temperature180m[i]).DefaultIfEmpty(0).Average()
                         };
 
                         // Return the weather object

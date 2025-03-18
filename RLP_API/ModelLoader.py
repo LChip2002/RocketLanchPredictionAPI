@@ -9,7 +9,7 @@ from sklearn.preprocessing import LabelEncoder
 class WeatherParams:
     def __init__(self, params):
         self.rain = params["Rain"]
-        self.showers = params["Showers"]
+        self.precipitation = params["Precipitation"]
         self.snowfall = params["Snowfall"]
         self.cloud_cover = params["CloudCover"]
         self.cloud_cover_low = params["CloudCoverLow"]
@@ -21,9 +21,6 @@ class WeatherParams:
         self.wind_speed_80m = params["WindSpeed80m"]
         self.wind_speed_120m = params["WindSpeed120m"]
         self.wind_speed_180m = params["WindSpeed180m"]
-        self.temperature_80m = params["Temperature80m"]
-        self.temperature_120m = params["Temperature120m"]
-        self.temperature_180m = params["Temperature180m"]
 
 class RocketParams:
     def __init__(self, params):
@@ -76,7 +73,7 @@ if __name__ == "__main__":
 
             # Add the weather parameters to the input_data dataframe
             input_data["Rain"] = [weather_params.rain]
-            input_data["Showers"] = [weather_params.showers]
+            input_data["Precipitation"] = [weather_params.precipitation]
             input_data["Snowfall"] = [weather_params.snowfall]
             input_data["CloudCover"] = [weather_params.cloud_cover]
             input_data["CloudCoverLow"] = [weather_params.cloud_cover_low]
@@ -88,9 +85,6 @@ if __name__ == "__main__":
             input_data["WindSpeed80m"] = [weather_params.wind_speed_80m]
             input_data["WindSpeed120m"] = [weather_params.wind_speed_120m]
             input_data["WindSpeed180m"] = [weather_params.wind_speed_180m]
-            input_data["Temperature80m"] = [weather_params.temperature_80m]
-            input_data["Temperature120m"] = [weather_params.temperature_120m]
-            input_data["Temperature180m"] = [weather_params.temperature_180m]
 
         # Check that the rocket parameters are not null
         if params["RocketParams"] is not None:

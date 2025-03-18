@@ -149,7 +149,7 @@ public class LaunchDataGet
                                         // Weather Params
                                         Temperature = weather.Temperature,
                                         Rain = weather.Rain,
-                                        Showers = weather.Showers,
+                                        Precipitation = weather.Precipitation,
                                         Snowfall = weather.Snowfall,
                                         CloudCover = weather.CloudCover,
                                         CloudCoverLow = weather.CloudCoverLow,
@@ -160,9 +160,6 @@ public class LaunchDataGet
                                         WindSpeed80m = weather.WindSpeed80m,
                                         WindSpeed120m = weather.WindSpeed120m,
                                         WindSpeed180m = weather.WindSpeed180m,
-                                        Temperature80m = weather.Temperature80m,
-                                        Temperature120m = weather.Temperature120m,
-                                        Temperature180m = weather.Temperature180m,
 
                                         // Properties from Rocket Configuration Query
                                         ToThrust = rocketConfig.ToThrust,

@@ -2,7 +2,7 @@ public class AverageWeatherMetrics
 {
     public double? Temperature { get; set; }
     public double? Rain { get; set; }
-    public double? Showers { get; set; }
+    public double? Precipitation { get; set; }
     public double? Snowfall { get; set; }
     public double? CloudCover { get; set; }
     public double? CloudCoverLow { get; set; }
