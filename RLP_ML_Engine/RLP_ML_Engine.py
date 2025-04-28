@@ -46,7 +46,7 @@ class PredictionResults:
 def success_rate_model(X_train):
     # Define model
     model = Sequential([
-    Dense(32, activation='relu', input_shape=(X_train.shape[1],)),
+    Dense(32, activation='relu', input_shape=(X_train.shape[1])),
     Dense(16, activation='relu'),
     Dense(1, activation='sigmoid')  # Binary classification
     ])
@@ -267,10 +267,6 @@ if __name__ == "__main__":
         # Evaluate F1 score
         f1 = f1_score(y_test, y_pred)
         print(f"F1 Score: {f1:.2f}")
-
-        # Confusion matrix
-        print("Confusion Matrix:")
-        print(confusion_matrix(y_test, y_pred))
 
         # Classification report
         print("\nClassification Report:")

@@ -42,7 +42,7 @@ namespace RLP_API.Services
                     if (launchQuery.LaunchSiteLongitude != null && launchQuery.LaunchSiteLatitude != null)
                     {
                         // Filter the query based on the launchQuery object
-                        launchEntriesFiltered = await launchEntries.Where(launch => Math.Round((double)launch.LaunchLongitude, 1).ToString() == launchQuery.LaunchSiteLongitude && Math.Round((double)launch.LaunchLatitude, 1).ToString() == launchQuery.LaunchSiteLatitude).ToListAsync();
+                        launchEntriesFiltered = await launchEntries.Where(launch => launch.LaunchLongitude.ToString() == launchQuery.LaunchSiteLongitude && launch.LaunchLatitude.ToString() == launchQuery.LaunchSiteLatitude).ToListAsync();
                     }
                     if (launchQuery.IsSuccessful != null)
                     {
